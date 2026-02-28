@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as jobService from "../services/jobService";
 import { CreateJobRequest, UpdateJobRequest } from "../models/Job";
 import * as ApiResponse from "../dto/ApiResponse";
+import { addJob } from "../services/jobProducer";
 
 export const getJobs = async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -49,15 +50,34 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
   try {
     const body: CreateJobRequest = req.body;
 
-    if (!body.jobHandler || !body.jobCategory) {
+    if (body.jobHandler === undefined || body.jobCategory === undefined) {
       res.status(400).json(ApiResponse.failure("jobHandler and jobCategory are required"));
       return;
     }
 
     const job = await jobService.createJob(body);
+    await addJob(job);
     res.status(201).json(ApiResponse.success(job, "Job created successfully"));
   } catch (error) {
     res.status(500).json(ApiResponse.failure("Failed to create job"));
+  }
+};
+
+export const createQueuedJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const payload = req.body as CreateJobRequest;
+
+    if (payload.jobHandler === undefined || payload.jobCategory === undefined) {
+      res.status(400).json(ApiResponse.failure("jobHandler and jobCategory are required"));
+      return;
+    }
+
+    const job = await jobService.createJob(payload);
+    await addJob(job);
+
+    res.status(201).json(ApiResponse.success(job.id, "Job is queued"));
+  } catch (error) {
+    res.status(500).json(ApiResponse.failure("Failed to queue job"));
   }
 };
 

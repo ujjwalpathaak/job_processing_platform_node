@@ -5,6 +5,7 @@ import { initializeDatabase } from "./database/migrations";
 import { requestLogger } from "./middleware/logger";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { setupRoutes } from "./routes";
+import { startConsumers } from "./consumer";
 
 const app: Express = express();
 
@@ -18,6 +19,9 @@ const startServer = async () => {
     console.log("Initializing database...");
     await initializeDatabase();
     console.log("Database initialized successfully");
+
+    startConsumers();
+    console.log("BullMQ consumers started");
 
     setupRoutes(app);
 
