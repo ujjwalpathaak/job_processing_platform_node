@@ -8,7 +8,7 @@ export const success = <T>(data?: T, message?: string): ApiResponse<T> => {
   };
 };
 
-export const failure = <T>(message: string, errors?: any): ApiResponse<T> => {
+export const failure = <T>(message: string, errors?: string[]): ApiResponse<T> => {
   return {
     success: false,
     message,
