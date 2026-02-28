@@ -1,0 +1,9 @@
+export enum JobStatus {
+  SCHEDULED,
+  PUBLISHED,
+  PROCESSING,
+  PROCESSED,
+  RETRY,
+  ERROR,
+  DEAD,
+}
