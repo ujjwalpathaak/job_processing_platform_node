@@ -5,12 +5,18 @@ export const initializeDatabase = async () => {
     await query(`
       CREATE TABLE IF NOT EXISTS jobs (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        status VARCHAR(50) DEFAULT 'pending',
+        job_handler VARCHAR(100) NOT NULL,
+        job_category VARCHAR(100) NOT NULL,
+        status VARCHAR(50) DEFAULT 'SCHEDULED',
+        data JSONB,
+        history JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS jobs_created_at_idx ON jobs(created_at DESC);
     `);
 
     await query(`

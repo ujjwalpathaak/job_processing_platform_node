@@ -1,19 +1,29 @@
+import { JobStatus, JobCategory, JobHandlerType } from "../enums";
+
+export interface JobHistory {
+  status: JobStatus;
+  timestamp: Date;
+  error?: string;
+}
+
 export interface Job {
   id: number;
-  name: string;
-  description: string;
-  status: "pending" | "processing" | "completed" | "failed";
-  created_at: Date;
-  updated_at: Date;
+  jobHandler: JobHandlerType;
+  jobCategory: JobCategory;
+  status: JobStatus;
+  data?: Record<string, unknown>;
+  history?: JobHistory[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateJobRequest {
-  name: string;
-  description: string;
+  jobHandler: JobHandlerType;
+  jobCategory: JobCategory;
+  data?: Record<string, unknown>;
 }
 
 export interface UpdateJobRequest {
-  name?: string;
-  description?: string;
-  status?: Job["status"];
+  status?: JobStatus;
+  data?: Record<string, unknown>;
 }

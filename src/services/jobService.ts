@@ -1,60 +1,35 @@
-import { query } from "../database/connection";
+import * as jobRepository from "../repositories/jobRepository";
 import { Job, CreateJobRequest, UpdateJobRequest } from "../models/Job";
+import { JobStatus } from "../enums";
 
 export const getAllJobs = async (): Promise<Job[]> => {
-  const result = await query("SELECT * FROM jobs ORDER BY created_at DESC");
-  return result.rows as Job[];
+  return jobRepository.findAll();
 };
 
 export const getJobById = async (id: number): Promise<Job | null> => {
-  const result = await query("SELECT * FROM jobs WHERE id = $1", [id]);
-  return (result.rows[0] as Job) || null;
+  return jobRepository.findById(id);
+};
+
+export const getJobsUpdatedSince = async (since: Date): Promise<Job[]> => {
+  return jobRepository.findUpdatedSince(since);
 };
 
 export const createJob = async (data: CreateJobRequest): Promise<Job> => {
-  const { name, description } = data;
-  const result = await query(
-    "INSERT INTO jobs (name, description) VALUES ($1, $2) RETURNING *",
-    [name, description],
-  );
-  return result.rows[0] as Job;
+  return jobRepository.create(data);
 };
 
-export const updateJob = async (
-  id: number,
-  data: UpdateJobRequest,
-): Promise<Job | null> => {
-  const fields: string[] = [];
-  const values: (string | number | null)[] = [];
-  let paramIndex = 1;
-
-  if (data.name !== undefined) {
-    fields.push(`name = $${paramIndex++}`);
-    values.push(data.name);
-  }
-  if (data.description !== undefined) {
-    fields.push(`description = $${paramIndex++}`);
-    values.push(data.description);
-  }
-  if (data.status !== undefined) {
-    fields.push(`status = $${paramIndex++}`);
-    values.push(data.status);
-  }
-
-  if (fields.length === 0) return getJobById(id);
-
-  fields.push(`updated_at = CURRENT_TIMESTAMP`);
-  values.push(id);
-
-  const result = await query(
-    `UPDATE jobs SET ${fields.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
-    values,
-  );
-
-  return (result.rows[0] as Job) || null;
+export const updateJob = async (id: number, data: UpdateJobRequest): Promise<Job | null> => {
+  return jobRepository.update(id, data);
 };
 
 export const deleteJob = async (id: number): Promise<boolean> => {
-  const result = await query("DELETE FROM jobs WHERE id = $1", [id]);
-  return result.rowCount! > 0;
+  return jobRepository.delete_(id);
+};
+
+export const updateJobStatus = async (
+  id: number,
+  status: JobStatus,
+  error?: string,
+): Promise<Job | null> => {
+  return jobRepository.addHistory(id, status, error);
 };

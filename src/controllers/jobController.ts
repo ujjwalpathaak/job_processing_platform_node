@@ -12,6 +12,23 @@ export const getJobs = async (_req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const getJobsUpdatedSince = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const since = req.query.since as string;
+
+    if (!since) {
+      res.status(400).json(ApiResponse.failure("Missing 'since' parameter"));
+      return;
+    }
+
+    const sinceDate = new Date(since);
+    const jobs = await jobService.getJobsUpdatedSince(sinceDate);
+    res.json(ApiResponse.success(jobs));
+  } catch (error) {
+    res.status(500).json(ApiResponse.failure("Failed to fetch job updates"));
+  }
+};
+
 export const getJob = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -32,8 +49,8 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
   try {
     const body: CreateJobRequest = req.body;
 
-    if (!body.name) {
-      res.status(400).json(ApiResponse.failure("Job name is required"));
+    if (!body.jobHandler || !body.jobCategory) {
+      res.status(400).json(ApiResponse.failure("jobHandler and jobCategory are required"));
       return;
     }
 
