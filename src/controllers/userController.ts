@@ -28,10 +28,7 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const createUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const body: CreateUserRequest = req.body;
 
@@ -42,25 +39,18 @@ export const createUser = async (
 
     const existingUser = await userService.getUserByEmail(body.email);
     if (existingUser) {
-      res
-        .status(409)
-        .json(ApiResponse.failure("User with this email already exists"));
+      res.status(409).json(ApiResponse.failure("User with this email already exists"));
       return;
     }
 
     const user = await userService.createUser(body);
-    res
-      .status(201)
-      .json(ApiResponse.success(user, "User created successfully"));
+    res.status(201).json(ApiResponse.success(user, "User created successfully"));
   } catch (error) {
     res.status(500).json(ApiResponse.failure("Failed to create user"));
   }
 };
 
-export const updateUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const body: UpdateUserRequest = req.body;
@@ -86,10 +76,7 @@ export const updateUser = async (
   }
 };
 
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const deleted = await userService.deleteUser(Number(id));
