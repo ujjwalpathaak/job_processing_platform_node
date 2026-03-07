@@ -1,13 +1,13 @@
-import { JobStatus } from "../enums/JobStatus";
+import * as Job from "../enums/Job";
 
 export class JobStateHistory {
-  id: number;
+  id: number | undefined;
   jobId: number;
-  status: JobStatus;
+  status: Job.Statuses;
   createdAt: Date;
   errorMessage?: string;
 
-  constructor(jobId: number, status: JobStatus, errorMessage?: string) {
+  constructor(jobId: number, status: Job.Statuses, errorMessage?: string) {
     this.jobId = jobId;
     this.status = status;
     this.errorMessage = errorMessage;

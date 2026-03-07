@@ -1,14 +1,14 @@
 import { JobMessage } from "../../dto/JobMessage";
-import { JobCategory, JobHandlerType } from "../../enums";
+import * as JobEnums from "../../enums/Job";
 import { AbstractJobHandler } from "./abstractJobHandler";
 
 export class WebhookTriggerJobHandler extends AbstractJobHandler {
-  public identify(): JobHandlerType {
-    return JobHandlerType.WEBHOOK_TRIGGER;
+  public identify(): JobEnums.HandlerTypes {
+    return JobEnums.HandlerTypes.WEBHOOK_TRIGGER;
   }
 
-  public category(): JobCategory {
-    return JobCategory.EXTERNAL;
+  public category(): JobEnums.Categories {
+    return JobEnums.Categories.EXTERNAL;
   }
 
   public retries(): number {

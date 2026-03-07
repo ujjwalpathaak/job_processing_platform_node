@@ -1,8 +1,8 @@
-import { JobCategory, JobHandlerType } from "../enums";
+import * as Job from "../enums/Job";
 
 export interface JobMessage {
   jobId: number;
-  jobCategory: JobCategory;
-  jobHandler: JobHandlerType;
+  jobCategory: Job.Categories;
+  jobHandler: Job.HandlerTypes;
   data: Record<string, unknown>;
 }

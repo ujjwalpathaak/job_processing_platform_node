@@ -1,13 +1,13 @@
 import { Worker } from "bullmq";
 import { config } from "../config";
 import { JobMessage } from "../dto/JobMessage";
-import { JobCategory } from "../enums";
+import * as Job from "../enums/Job";
 import { jobHandlerFactory } from "../factory/jobHandlerFactory";
 import { AbstractJobConsumer } from "./abstractJobConsumer";
 
 export class StandardJobConsumer extends AbstractJobConsumer {
   protected consumerName = "StandardJobConsumer";
-  protected category = JobCategory.STANDARD;
+  protected category = Job.Categories.STANDARD;
 
   public readonly worker: Worker<JobMessage>;
 

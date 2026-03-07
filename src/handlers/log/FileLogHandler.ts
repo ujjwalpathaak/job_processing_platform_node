@@ -1,5 +1,4 @@
-import { LogHandlerType } from "../../enums/LogHandlerType";
-import { LogLevel } from "../../enums/LogLevel";
+import * as LogEnums from "../../enums/Log";
 import { LogHandler } from "../../interfaces/LogHandler";
 import { LogMessage } from "../../dto/LogMessage";
 import fs from "fs";
@@ -9,12 +8,12 @@ export class FileLogHandler implements LogHandler {
   private static readonly ERROR_LOG_FILE = path.join("logs", "error.log");
   private static readonly LOG_FILE = path.join("logs", "application.log");
 
-  identify(): LogHandlerType {
-    return LogHandlerType.FILE;
+  identify(): LogEnums.HandlerType {
+    return LogEnums.HandlerType.FILE;
   }
 
-  supportedLevels(): LogLevel[] {
-    return [LogLevel.TRACE, LogLevel.INFO, LogLevel.ERROR];
+  supportedLevels(): LogEnums.Level[] {
+    return [LogEnums.Level.TRACE, LogEnums.Level.INFO, LogEnums.Level.ERROR];
   }
 
   handle(message: LogMessage): void {
@@ -33,14 +32,14 @@ export class FileLogHandler implements LogHandler {
     }
   }
 
-  private getFilePath(level: LogLevel): string {
+  private getFilePath(level: LogEnums.Level): string {
     switch (level) {
-      case LogLevel.ERROR:
+      case LogEnums.Level.ERROR:
         return FileLogHandler.ERROR_LOG_FILE;
-      case LogLevel.DEBUG:
-      case LogLevel.TRACE:
-      case LogLevel.INFO:
-      case LogLevel.WARN:
+      case LogEnums.Level.DEBUG:
+      case LogEnums.Level.TRACE:
+      case LogEnums.Level.INFO:
+      case LogEnums.Level.WARN:
         return FileLogHandler.LOG_FILE;
       default:
         throw new Error(`Unsupported log level: ${level}`);

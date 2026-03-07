@@ -1,18 +1,24 @@
-import express, { Express } from "express";
+import express from "express";
+import type { Request, Express, Response, NextFunction } from "express";
 import cors from "cors";
 import { config } from "./config";
 import { initializeDatabase } from "./database/migrations";
-import { requestLogger } from "./middleware/logger";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import { setupRoutes } from "./routes";
-import { startConsumers } from "./consumer";
+import { setupMainRoutes, setupJobRoutes } from "./routes";
+// import { startConsumers } from "./consumer";
+import { Logger } from "./services/Logger";
 
 const app: Express = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(requestLogger);
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  Logger.info(
+    `Incoming request: ${req.method} ${req.path} from ${req.ip} at ${new Date().toISOString()}`,
+  );
+  next();
+});
 
 const startServer = async () => {
   try {
@@ -20,10 +26,11 @@ const startServer = async () => {
     await initializeDatabase();
     console.log("Database initialized successfully");
 
-    startConsumers();
-    console.log("BullMQ consumers started");
+    // startConsumers();
+    // console.log("BullMQ consumers started");
 
-    setupRoutes(app);
+    setupMainRoutes(app);
+    setupJobRoutes(app);
 
     app.use(notFoundHandler);
     app.use(errorHandler);

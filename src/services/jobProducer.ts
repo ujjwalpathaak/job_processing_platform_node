@@ -21,14 +21,14 @@ const parseDurationToMs = (value: string): number => {
 
 export const addJob = async (job: Job): Promise<void> => {
   const queue = getQueueByCategory(job.jobCategory);
-  const handler = jobHandlerFactory.get(job.jobHandler, job.jobCategory);
+  const handler = jobHandlerFactory.get(job.jobHandler, job.jobHandler);
   const retries = handler.retries();
   const backoff = handler.backoff();
   const attempts = Math.max(1, retries + 1);
   const firstBackoff = backoff.length > 0 ? parseDurationToMs(backoff[0]) : 1000;
 
   const payload: JobMessage = {
-    jobId: job.id,
+    jobId: job.id!,
     jobCategory: job.jobCategory,
     jobHandler: job.jobHandler,
     data: job.data || {},
@@ -46,6 +46,7 @@ export const addJob = async (job: Job): Promise<void> => {
 };
 
 export const addRetryRouteJob = async (job: Job): Promise<void> => {
+  if (!job.id) return;
   const payload: JobMessage = {
     jobId: job.id,
     jobCategory: job.jobCategory,
@@ -54,4 +55,8 @@ export const addRetryRouteJob = async (job: Job): Promise<void> => {
   };
 
   await retryRouteQueue.add("retry-job", payload);
+};
+
+export const bull = {
+  addJob,
 };

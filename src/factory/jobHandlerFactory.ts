@@ -1,5 +1,5 @@
-import { JobCategory, JobHandlerType } from "../enums";
-import { JobHandler } from "../interfaces/JobHandler";
+import * as Job from "../enums/Job";
+import { JobHandler } from "../interfaces/Job";
 import { CrmSyncJobHandler } from "../handlers/job/crmSyncJobHandler";
 import { EmailJobHandler } from "../handlers/job/emailJobHandler";
 import { NotificationCleanupJobHandler } from "../handlers/job/notificationCleanupJobHandler";
@@ -8,7 +8,7 @@ import { ReportGenerationJobHandler } from "../handlers/job/reportGenerationJobH
 import { WebhookTriggerJobHandler } from "../handlers/job/webhookTriggerJobHandler";
 
 export class JobHandlerFactory {
-  private readonly handlers: Map<JobHandlerType, JobHandler>;
+  private readonly handlers: Map<Job.HandlerTypes, JobHandler>;
 
   constructor() {
     const registeredHandlers: JobHandler[] = [
@@ -25,20 +25,18 @@ export class JobHandlerFactory {
     );
   }
 
-  public get(handlerType: JobHandlerType, category: JobCategory): JobHandler {
-    const handler = this.handlers.get(handlerType);
-
-    if (!handler) {
-      throw new Error(`No handler found for type=${handlerType}`);
+  public get(handler: string, handlerType: Job.HandlerTypes): JobHandler {
+    if (!handlerType) {
+      throw new Error(`Invalid handler type: ${handler}`);
     }
 
-    if (handler.category() !== category) {
-      throw new Error(
-        `Handler category mismatch for type=${handlerType}. expected=${handler.category()} actual=${category}`,
-      );
+    const handlerObj = this.handlers.get(handlerType);
+
+    if (!handlerObj) {
+      throw new Error(`No handler found for type=${handler}`);
     }
 
-    return handler;
+    return handlerObj;
   }
 }
 

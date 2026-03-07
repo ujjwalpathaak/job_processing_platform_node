@@ -1,14 +1,14 @@
 import { JobMessage } from "../../dto/JobMessage";
-import { JobCategory, JobHandlerType } from "../../enums";
+import * as JobEnums from "../../enums/Job";
 import { AbstractJobHandler } from "./abstractJobHandler";
 
 export class EmailJobHandler extends AbstractJobHandler {
-  public identify(): JobHandlerType {
-    return JobHandlerType.EMAIL;
+  public identify(): JobEnums.HandlerTypes {
+    return JobEnums.HandlerTypes.EMAIL;
   }
 
-  public category(): JobCategory {
-    return JobCategory.STANDARD;
+  public category(): JobEnums.Categories {
+    return JobEnums.Categories.STANDARD;
   }
 
   public retries(): number {
