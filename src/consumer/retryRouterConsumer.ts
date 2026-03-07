@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { config } from "../config";
+import { config } from "../config/config";
 import { JobMessage } from "../dto/JobMessage";
 import { AbstractRetryRouterConsumer } from "./abstractRetryRouterConsumer";
 

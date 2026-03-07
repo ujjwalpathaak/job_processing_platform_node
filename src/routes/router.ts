@@ -1,8 +1,13 @@
 import { Express, static as expressStatic } from "express";
 import path from "path";
-import * as jobController from "../controllers/jobController";
+import JobController from "../controllers/job-controller";
 
-export const setupMainRoutes = (app: Express) => {
+export const setupRoutes = (app: Express) => {
+  setupMainRoutes(app);
+  setupJobRoutes(app);
+};
+
+const setupMainRoutes = (app: Express) => {
   app.use(expressStatic(path.join(__dirname, "../static")));
 
   app.get("/api/health", (_req, res) => {
@@ -14,6 +19,6 @@ export const setupMainRoutes = (app: Express) => {
   });
 };
 
-export const setupJobRoutes = (app: Express) => {
-  app.get("/api/new/:handler", jobController.createJob);
+const setupJobRoutes = (app: Express) => {
+  app.get("/api/new/:handler", JobController.createNewJob);
 };

@@ -1,1 +1,1 @@
-export { ApiResponse } from "./ApiResponse";
+export { ApiResponse } from "./api-response";

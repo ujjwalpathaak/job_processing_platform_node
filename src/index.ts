@@ -1,10 +1,10 @@
 import express from "express";
 import type { Request, Express, Response, NextFunction } from "express";
 import cors from "cors";
-import { config } from "./config";
+import { config } from "./config/config";
 import { initializeDatabase } from "./database/migrations";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import { setupMainRoutes, setupJobRoutes } from "./routes";
+import { setupRoutes } from "./routes/router";
 // import { startConsumers } from "./consumer";
 import { Logger } from "./services/Logger";
 import FileLogHandler from "./handlers/log/FileLogHandler";
@@ -32,8 +32,8 @@ const startServer = async () => {
     // startConsumers();
     // console.log("BullMQ consumers started");
 
-    setupMainRoutes(app);
-    setupJobRoutes(app);
+    setupRoutes(app);
+    console.log("Routes initialized successfully");
 
     app.use(notFoundHandler);
     app.use(errorHandler);

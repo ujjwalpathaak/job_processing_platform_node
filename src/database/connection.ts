@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from "pg";
-import { config } from "../config";
+import { config } from "../config/config";
 
 const pool = new Pool({
   connectionString: config.database.url,

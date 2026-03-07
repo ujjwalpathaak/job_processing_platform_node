@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { config } from "../config";
+import { config } from "../config/config";
 import * as Job from "../enums/Job";
 
 const connection = {
