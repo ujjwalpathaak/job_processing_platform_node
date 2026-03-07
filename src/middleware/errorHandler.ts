@@ -7,6 +7,6 @@ export const errorHandler = (err: Error, _req: Request, res: Response, _next: Ne
 };
 
 export const notFoundHandler = (_req: Request, res: Response) => {
-  Logger.warn(`Route not found: ${_req.method} ${_req.path}`);
+  Logger.error(`Route not found: ${_req.method} ${_req.path}`);
   res.status(404).json({ success: false, error: "Route not found" });
 };

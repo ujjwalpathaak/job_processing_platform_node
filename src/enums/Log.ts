@@ -4,9 +4,6 @@ export enum HandlerType {
 }
 
 export enum Level {
-  TRACE,
-  DEBUG,
-  INFO,
-  WARN,
-  ERROR,
+  INFO = "info",
+  ERROR = "error",
 }

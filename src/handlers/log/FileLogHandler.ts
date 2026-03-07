@@ -4,7 +4,7 @@ import { LogMessage } from "../../dto/LogMessage";
 import fs from "fs";
 import path from "path";
 
-export class FileLogHandler implements LogHandler {
+export default class FileLogHandler implements LogHandler {
   private static readonly ERROR_LOG_FILE = path.join("logs", "error.log");
   private static readonly LOG_FILE = path.join("logs", "application.log");
 
@@ -13,34 +13,37 @@ export class FileLogHandler implements LogHandler {
   }
 
   supportedLevels(): LogEnums.Level[] {
-    return [LogEnums.Level.TRACE, LogEnums.Level.INFO, LogEnums.Level.ERROR];
+    return [LogEnums.Level.INFO, LogEnums.Level.ERROR];
   }
 
   handle(message: LogMessage): void {
     try {
-      const filePath = this.getFilePath(message.level);
-      const logDir = path.dirname(filePath);
-
-      if (!fs.existsSync(logDir)) {
-        fs.mkdirSync(logDir, { recursive: true });
+      const filePaths = this.getFilePath(message.level);
+      for (const filePath of filePaths) {
+        this.writeToFile(filePath, message);
       }
-
-      const logLine = this.format(message);
-      fs.appendFileSync(filePath, logLine);
     } catch (error) {
       console.error("Failed to write log to file:", error);
     }
   }
 
-  private getFilePath(level: LogEnums.Level): string {
+  private writeToFile(filePath: string, message: LogMessage): void {
+    const logDir = path.dirname(filePath);
+
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+
+    const logLine = this.format(message);
+    fs.appendFileSync(filePath, logLine);
+  }
+
+  private getFilePath(level: LogEnums.Level): string[] {
     switch (level) {
       case LogEnums.Level.ERROR:
-        return FileLogHandler.ERROR_LOG_FILE;
-      case LogEnums.Level.DEBUG:
-      case LogEnums.Level.TRACE:
+        return [FileLogHandler.ERROR_LOG_FILE, FileLogHandler.LOG_FILE];
       case LogEnums.Level.INFO:
-      case LogEnums.Level.WARN:
-        return FileLogHandler.LOG_FILE;
+        return [FileLogHandler.LOG_FILE];
       default:
         throw new Error(`Unsupported log level: ${level}`);
     }

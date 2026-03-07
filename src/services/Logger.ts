@@ -6,12 +6,13 @@ const handlers: Map<Log.Level, LogHandler[]> = new Map();
 
 export class Logger {
   static init(handlerList: LogHandler[]): void {
+    handlers.clear();
+
     for (const handler of handlerList) {
       for (const level of handler.supportedLevels()) {
-        if (!handlers.has(level)) {
-          handlers.set(level, []);
-        }
-        handlers.get(level)!.push(handler);
+        const levelHandlers = handlers.get(level) ?? [];
+        levelHandlers.push(handler);
+        handlers.set(level, levelHandlers);
       }
     }
   }
@@ -28,18 +29,6 @@ export class Logger {
 
   static info(message: string): void {
     this.handle(message, Log.Level.INFO);
-  }
-
-  static debug(message: string): void {
-    this.handle(message, Log.Level.DEBUG);
-  }
-
-  static trace(message: string): void {
-    this.handle(message, Log.Level.TRACE);
-  }
-
-  static warn(message: string): void {
-    this.handle(message, Log.Level.WARN);
   }
 
   static error(message: string): void {

@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { setupMainRoutes, setupJobRoutes } from "./routes";
 // import { startConsumers } from "./consumer";
 import { Logger } from "./services/Logger";
+import FileLogHandler from "./handlers/log/FileLogHandler";
 
 const app: Express = express();
 
@@ -25,6 +26,8 @@ const startServer = async () => {
     console.log("Initializing database...");
     await initializeDatabase();
     console.log("Database initialized successfully");
+    Logger.init([new FileLogHandler()]);
+    console.log("Logger initialized successfully");
 
     // startConsumers();
     // console.log("BullMQ consumers started");
