@@ -2,7 +2,7 @@ import { Job } from "bullmq";
 import { JobMessage } from "../dto/JobMessage";
 import { JobHandlerFactory } from "../factory/jobHandlerFactory";
 import * as JobEnums from "../enums/Job";
-import * as jobService from "../services/jobService";
+import * as jobService from "../services/job-service";
 
 export abstract class AbstractJobConsumer {
   protected abstract consumerName: string;

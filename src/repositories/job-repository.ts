@@ -1,7 +1,26 @@
 import { query } from "../database/connection";
-import type { CreateJobRequest, NewJob } from "../interfaces/Job";
+import type { NewJob } from "../interfaces/Job";
 import { Job } from "../models/Job";
 import * as JobEnums from "../enums/Job";
+
+const JobRepository = {
+  async create(job: Job): Promise<NewJob> {
+    const result = await query(
+      "INSERT INTO jobs (job_handler, job_category, status, data) VALUES ($1, $2, $3, $4) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, created_at as createdAt, updated_at as updatedAt",
+      [job.handler, job.category, job.status, job.data.toString()],
+    );
+
+    const row = result.rows[0];
+
+    if (!row?.id) {
+      throw new Error("Failed to create job");
+    }
+
+    return row;
+  },
+};
+
+export default JobRepository;
 
 // export const findAll = async (): Promise<Job[]> => {
 //   const result = await query(
@@ -25,22 +44,6 @@ import * as JobEnums from "../enums/Job";
 //   );
 //   return result.rows.map(mapRowToJob);
 // };
-
-export const create = async (data: CreateJobRequest): Promise<NewJob> => {
-  const { jobHandler: jobHandler, data: jobData } = data;
-  const result = await query(
-    "INSERT INTO jobs (job_handler, job_category, status, data, history) VALUES ($1, $2, $3, $4, $5) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, history, created_at as createdAt, updated_at as updatedAt",
-    [
-      jobHandler.identify(),
-      jobHandler.category(),
-      0,
-      JSON.stringify(jobData || {}),
-      JSON.stringify([]),
-    ],
-  );
-
-  return result.rows[0];
-};
 
 // export const update = async (id: number, data: UpdateJobRequest): Promise<Job | null> => {
 //   const fields: string[] = [];

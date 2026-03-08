@@ -1,4 +1,4 @@
-import { ApiResponse } from "../types";
+import { ApiResponse } from "../types/job";
 
 const ApiResponse = {
   success: <T>(data?: T, message?: string): ApiResponse<T> => {
