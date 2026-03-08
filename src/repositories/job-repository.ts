@@ -1,10 +1,9 @@
 import { query } from "../database/connection";
-import type { NewJob } from "../interfaces/job-interfaces";
 import { Job } from "../models/job-model";
 import * as JobEnums from "../enums/job-enums";
 
 const JobRepository = {
-  async create(job: Job): Promise<NewJob> {
+  async create(job: Job): Promise<Job> {
     const result = await query(
       "INSERT INTO jobs (job_handler, job_category, status, data) VALUES ($1, $2, $3, $4) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, created_at as createdAt, updated_at as updatedAt",
       [job.handler, job.category, job.status, JSON.stringify(job.data ?? {})],

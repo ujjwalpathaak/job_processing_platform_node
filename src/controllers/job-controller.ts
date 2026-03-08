@@ -18,7 +18,7 @@ const JobController = {
       return res.status(400).json(ApiResponse.failure(`Invalid job handler type: ${handler}`));
     }
     try {
-      const job = await JobService.createJob(handler as JobEnums.HandlerTypes, jobData);
+      const job = await JobService.createAndPublishJob(handler as JobEnums.HandlerTypes, jobData);
       return res.status(201).json(ApiResponse.success(job, "Job created successfully"));
     } catch {
       return res.status(500).json(ApiResponse.failure("Failed to create job"));

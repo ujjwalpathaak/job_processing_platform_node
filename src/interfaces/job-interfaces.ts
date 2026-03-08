@@ -8,5 +8,3 @@ export interface JobHandler {
   backoff(): string[];
   process(message: JobMessage): Promise<void>;
 }
-
-export interface NewJob {}
