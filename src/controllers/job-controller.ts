@@ -13,6 +13,7 @@ const JobController = {
       return res.status(400).json(ApiResponse.failure("Handler parameter is required"));
     }
 
+    // make into isValidHandlerType and return boolean instead of throwing error
     const jobHandlerType: JobEnums.HandlerTypes | undefined = JobManager.getJobHandlerType(handler);
     if (!jobHandlerType) {
       return res.status(400).json(ApiResponse.failure(`Invalid job handler type: ${handler}`));

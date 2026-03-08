@@ -20,5 +20,5 @@ const setupMainRoutes = (app: Express) => {
 };
 
 const setupJobRoutes = (app: Express) => {
-  app.get("/api/new/:handler", JobController.createNewJob);
+  app.post("/api/new/:handler", JobController.createNewJob);
 };

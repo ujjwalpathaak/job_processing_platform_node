@@ -2,7 +2,7 @@ import * as JobEnums from "../enums/Job";
 import { jobData } from "../types/job";
 
 export class Job {
-  // private readonly _id?: number;
+  private readonly _id?: number;
   private readonly _createdAt: Date;
   private _status: JobEnums.Statuses;
   private readonly _jobCategory: JobEnums.Categories;
@@ -15,6 +15,10 @@ export class Job {
     this._jobHandler = jobHandler;
     this._data = data ?? {};
     this._createdAt = new Date();
+  }
+
+  get id(): number {
+    return this._id!;
   }
 
   get status(): JobEnums.Statuses {

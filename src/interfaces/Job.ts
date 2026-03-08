@@ -15,17 +15,17 @@ export interface JobHandler {
 //   error?: string;
 // }
 
-export class JobRequest {
-  jobHandler: JobHandler;
-  data?: Record<string, unknown>;
-  timestamp: string;
+// export class JobRequest {
+//   jobHandler: JobHandler;
+//   data?: Record<string, unknown>;
+//   timestamp: string;
 
-  constructor(jobHandler: Job.HandlerTypes, data: Record<string, unknown>) {
-    this.jobHandler = jobHandler;
-    this.data = data;
-    this.timestamp = new Date().toISOString();
-  }
-}
+//   constructor(jobHandler: Job.HandlerTypes, data: Record<string, unknown>) {
+//     this.jobHandler = jobHandler;
+//     this.data = data;
+//     this.timestamp = new Date().toISOString();
+//   }
+// }
 // export interface CreateJobRequest {
 //   jobHandler: Job.HandlerTypes;
 //   data?: Record<string, unknown>;

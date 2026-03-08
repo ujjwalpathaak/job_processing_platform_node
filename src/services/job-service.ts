@@ -43,10 +43,10 @@ export default JobService;
 //   return jobRepository.delete_(id);
 // };
 
-// export const updateJobStatus = async (
-//   id: number,
-//   status: JobEnums.Statuses,
-//   error?: string,
-// ): Promise<Job | null> => {
-//   return jobRepository.addHistory(id, status, error);
-// };
+export const updateJobStatus = async (
+  id: number,
+  status: JobEnums.Statuses,
+  error?: string,
+): Promise<void> => {
+  await JobRepository.update(id, { status, error });
+};
