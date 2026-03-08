@@ -7,7 +7,7 @@ import { RefundJobHandler } from "../handlers/job/refund-job-handler";
 import { ReportGenerationJobHandler } from "../handlers/job/report-generation-job-handler";
 import { WebhookTriggerJobHandler } from "../handlers/job/webhook-trigger-job-handler";
 
-export class JobHandlerFactory {
+export class JobHandlerFactoryClass {
   private readonly handlers: Map<Job.HandlerTypes, JobHandler>;
 
   constructor() {
@@ -25,19 +25,19 @@ export class JobHandlerFactory {
     );
   }
 
-  public get(handler: string, handlerType: Job.HandlerTypes): JobHandler {
+  public get(handlerType: Job.HandlerTypes): JobHandler {
     if (!handlerType) {
-      throw new Error(`Invalid handler type: ${handler}`);
+      throw new Error(`Invalid handler type: ${handlerType}`);
     }
 
     const handlerObj = this.handlers.get(handlerType);
 
     if (!handlerObj) {
-      throw new Error(`No handler found for type=${handler}`);
+      throw new Error(`No handler found for type=${handlerType}`);
     }
 
     return handlerObj;
   }
 }
 
-export const jobHandlerFactory = new JobHandlerFactory();
+export const JobHandlerFactory = new JobHandlerFactoryClass();

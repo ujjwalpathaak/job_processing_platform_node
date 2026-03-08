@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 import { config } from "../config/config";
-import * as Job from "../enums/job-enums";
+import * as JobEnums from "../enums/job-enums";
 
 const connection = {
   host: config.redis.host,
@@ -12,16 +12,12 @@ export const externalQueue = new Queue("external.jobs", { connection });
 export const criticalQueue = new Queue("critical.jobs", { connection });
 export const retryRouteQueue = new Queue("retry.route.queue", { connection });
 
-const categoryQueueMap: Record<Job.Categories, Queue> = {
-  [Job.Categories.STANDARD]: standardQueue,
-  [Job.Categories.EXTERNAL]: externalQueue,
-  [Job.Categories.CRITICAL]: criticalQueue,
+const categoryQueueMap: Record<JobEnums.Categories, Queue> = {
+  [JobEnums.Categories.STANDARD]: standardQueue,
+  [JobEnums.Categories.EXTERNAL]: externalQueue,
+  [JobEnums.Categories.CRITICAL]: criticalQueue,
 };
 
-export const getQueueByCategory = (category: Job.Categories): Queue => {
+export const getQueueByCategory = (category: JobEnums.Categories): Queue => {
   return categoryQueueMap[category];
 };
-
-const queue = standardQueue;
-
-export default queue;

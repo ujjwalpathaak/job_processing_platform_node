@@ -1,6 +1,6 @@
 import { Express, static as expressStatic } from "express";
 import path from "path";
-import JobController from "../controllers/job-controller";
+import { createNewJobController } from "../controllers/job-controller";
 
 export const setupRoutes = (app: Express) => {
   setupMainRoutes(app);
@@ -20,5 +20,5 @@ const setupMainRoutes = (app: Express) => {
 };
 
 const setupJobRoutes = (app: Express) => {
-  app.post("/api/new/:handler", JobController.createNewJob);
+  app.post("/api/new/:handler", createNewJobController);
 };
