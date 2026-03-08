@@ -1,4 +1,4 @@
-import { ApiResponseType } from "../types/api-response";
+import { ApiResponseType } from "../types/api-response-types";
 
 const ApiResponse = {
   success: <T>(data?: T, message?: string): ApiResponseType<T> => {

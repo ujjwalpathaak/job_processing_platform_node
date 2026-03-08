@@ -1,7 +1,7 @@
-import { CriticalJobConsumer } from "./criticalJobConsumer";
-import { ExternalJobConsumer } from "./externalJobConsumer";
-import { RetryRouterConsumer } from "./retryRouterConsumer";
-import { StandardJobConsumer } from "./standardJobConsumer";
+import { CriticalJobConsumer } from "./critical-job-consumer";
+import { ExternalJobConsumer } from "./external-job-consumer";
+import { RetryRouterConsumer } from "./retry-router-consumer";
+import { StandardJobConsumer } from "./standard-job-consumer";
 
 export const startConsumers = () => {
   const standard = new StandardJobConsumer();

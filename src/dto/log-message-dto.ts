@@ -1,4 +1,4 @@
-import * as Log from "../enums/Log";
+import * as Log from "../enums/log-enums";
 import { v4 as uuidv4 } from "uuid";
 
 export class LogMessage {

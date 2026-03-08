@@ -1,5 +1,5 @@
-import { LogMessage } from "../dto/LogMessage";
-import * as LogEnums from "../enums/Log";
+import { LogMessage } from "../dto/log-message-dto";
+import * as LogEnums from "../enums/log-enums";
 
 export interface LogHandler {
   identify(): LogEnums.HandlerType;

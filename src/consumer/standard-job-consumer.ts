@@ -1,9 +1,9 @@
 import { Worker } from "bullmq";
 import { config } from "../config/config";
-import { JobMessage } from "../dto/JobMessage";
-import * as Job from "../enums/Job";
-import { jobHandlerFactory } from "../factory/jobHandlerFactory";
-import { AbstractJobConsumer } from "./abstractJobConsumer";
+import { JobMessage } from "../dto/job-message-dto";
+import * as Job from "../enums/job-enums";
+import { jobHandlerFactory } from "../factory/job-handler-factory";
+import { AbstractJobConsumer } from "./abstract-job-consumer";
 
 export class StandardJobConsumer extends AbstractJobConsumer {
   protected consumerName = "StandardJobConsumer";

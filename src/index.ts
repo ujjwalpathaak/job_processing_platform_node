@@ -3,11 +3,11 @@ import type { Request, Express, Response, NextFunction } from "express";
 import cors from "cors";
 import { config } from "./config/config";
 import { initializeDatabase } from "./database/migrations";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { setupRoutes } from "./routes/router";
 // import { startConsumers } from "./consumer";
-import { Logger } from "./services/Logger";
-import FileLogHandler from "./handlers/log/FileLogHandler";
+import { Logger } from "./services/log-service";
+import FileLogHandler from "./handlers/log/file-log-handler";
 
 const app: Express = express();
 

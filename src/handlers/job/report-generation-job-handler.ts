@@ -1,6 +1,6 @@
-import { JobMessage } from "../../dto/JobMessage";
-import * as JobEnums from "../../enums/Job";
-import { AbstractJobHandler } from "./abstractJobHandler";
+import { JobMessage } from "../../dto/job-message-dto";
+import * as JobEnums from "../../enums/job-enums";
+import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class ReportGenerationJobHandler extends AbstractJobHandler {
   public identify(): JobEnums.HandlerTypes {

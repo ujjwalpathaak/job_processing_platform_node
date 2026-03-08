@@ -1,5 +1,5 @@
-import { JobMessage } from "../../dto/JobMessage";
-import { JobHandler } from "../../interfaces/Job";
+import { JobMessage } from "../../dto/job-message-dto";
+import { JobHandler } from "../../interfaces/job-interfaces";
 
 export abstract class AbstractJobHandler implements JobHandler {
   public abstract identify(): ReturnType<JobHandler["identify"]>;

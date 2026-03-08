@@ -1,6 +1,6 @@
-import { JobMessage } from "../../dto/JobMessage";
-import * as Job from "../../enums/Job";
-import { AbstractJobHandler } from "./abstractJobHandler";
+import { JobMessage } from "../../dto/job-message-dto";
+import * as Job from "../../enums/job-enums";
+import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class CrmSyncJobHandler extends AbstractJobHandler {
   public identify(): Job.HandlerTypes {

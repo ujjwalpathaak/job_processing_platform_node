@@ -1,5 +1,5 @@
-import * as JobEnums from "../enums/Job";
-import { jobData } from "../types/job";
+import * as JobEnums from "../enums/job-enums";
+import { jobData } from "../types/job-types";
 
 export class Job {
   private readonly _id?: number;

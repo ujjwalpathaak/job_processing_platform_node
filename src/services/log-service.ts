@@ -1,6 +1,6 @@
-import { LogMessage } from "../dto/LogMessage";
-import * as Log from "../enums/Log";
-import { LogHandler } from "../interfaces/LogHandler";
+import { LogMessage } from "../dto/log-message-dto";
+import * as Log from "../enums/log-enums";
+import { LogHandler } from "../interfaces/log-handlers";
 
 const handlers: Map<Log.Level, LogHandler[]> = new Map();
 

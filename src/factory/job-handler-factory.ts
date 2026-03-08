@@ -1,11 +1,11 @@
-import * as Job from "../enums/Job";
-import { JobHandler } from "../interfaces/Job";
-import { CrmSyncJobHandler } from "../handlers/job/crmSyncJobHandler";
-import { EmailJobHandler } from "../handlers/job/emailJobHandler";
-import { NotificationCleanupJobHandler } from "../handlers/job/notificationCleanupJobHandler";
-import { RefundJobHandler } from "../handlers/job/refundJobHandler";
-import { ReportGenerationJobHandler } from "../handlers/job/reportGenerationJobHandler";
-import { WebhookTriggerJobHandler } from "../handlers/job/webhookTriggerJobHandler";
+import * as Job from "../enums/job-enums";
+import { JobHandler } from "../interfaces/job-interfaces";
+import { CrmSyncJobHandler } from "../handlers/job/crm-sync-job-handler";
+import { EmailJobHandler } from "../handlers/job/email-job-handler";
+import { NotificationCleanupJobHandler } from "../handlers/job/notification-cleanup-job-handler";
+import { RefundJobHandler } from "../handlers/job/refund-job-handler";
+import { ReportGenerationJobHandler } from "../handlers/job/report-generation-job-handler";
+import { WebhookTriggerJobHandler } from "../handlers/job/webhook-trigger-job-handler";
 
 export class JobHandlerFactory {
   private readonly handlers: Map<Job.HandlerTypes, JobHandler>;

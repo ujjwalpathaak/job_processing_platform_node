@@ -1,7 +1,7 @@
-import { JobMessage } from "../dto/JobMessage";
-import { jobHandlerFactory } from "../factory/jobHandlerFactory";
-import { Job } from "../models/Job";
-import { getQueueByCategory, retryRouteQueue } from "../queues/jobQueue";
+import { JobMessage } from "../dto/job-message-dto";
+import { jobHandlerFactory } from "../factory/job-handler-factory";
+import { Job } from "../models/job-model";
+import { getQueueByCategory, retryRouteQueue } from "../queues/job-queues";
 
 const parseDurationToMs = (value: string): number => {
   const match = value.trim().match(/^(\d+)(ms|s|m|h)$/i);

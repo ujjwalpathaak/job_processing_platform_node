@@ -1,6 +1,6 @@
-import * as JobEnums from "../enums/Job";
+import * as JobEnums from "../enums/job-enums";
 import { jobHandlers } from "../handlers/job";
-import { JobHandler } from "../interfaces/Job";
+import { JobHandler } from "../interfaces/job-interfaces";
 
 const JobManager = {
   getJobHandlerCategoryFromType(jobHandlerType: JobEnums.HandlerTypes): JobEnums.Categories {
@@ -13,14 +13,11 @@ const JobManager = {
 
     return handler.category();
   },
-  getJobHandlerType(value: string): JobEnums.HandlerTypes {
+  isValidHandler(value: string): boolean {
     const handlerType = Object.values(JobEnums.HandlerTypes).find(
       (type) => type.toLowerCase() === value.toLowerCase(),
     );
-    if (!handlerType) {
-      throw new Error(`Invalid handler type: ${value}`);
-    }
-    return handlerType;
+    return !!handlerType;
   },
 };
 

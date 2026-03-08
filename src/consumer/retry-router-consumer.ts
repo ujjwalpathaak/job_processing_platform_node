@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { config } from "../config/config";
-import { JobMessage } from "../dto/JobMessage";
-import { AbstractRetryRouterConsumer } from "./abstractRetryRouterConsumer";
+import { JobMessage } from "../dto/job-message-dto";
+import { AbstractRetryRouterConsumer } from "./abstract-retry-router-consumer";
 
 export class RetryRouterConsumer extends AbstractRetryRouterConsumer {
   protected routerName = "RetryRouterConsumer";

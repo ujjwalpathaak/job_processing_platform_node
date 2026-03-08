@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
-import { JobMessage } from "../dto/JobMessage";
-import { getQueueByCategory } from "../queues/jobQueue";
+import { JobMessage } from "../dto/job-message-dto";
+import { getQueueByCategory } from "../queues/job-queues";
 
 export abstract class AbstractRetryRouterConsumer {
   protected abstract routerName: string;

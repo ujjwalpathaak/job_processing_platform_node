@@ -1,4 +1,4 @@
-import * as Job from "../enums/Job";
+import * as Job from "../enums/job-enums";
 
 export interface JobMessage {
   jobId: number;

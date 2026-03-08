@@ -1,7 +1,7 @@
 import { query } from "../database/connection";
-import type { NewJob } from "../interfaces/Job";
-import { Job } from "../models/Job";
-import * as JobEnums from "../enums/Job";
+import type { NewJob } from "../interfaces/job-interfaces";
+import { Job } from "../models/job-model";
+import * as JobEnums from "../enums/job-enums";
 
 const JobRepository = {
   async create(job: Job): Promise<NewJob> {

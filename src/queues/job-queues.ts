@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 import { config } from "../config/config";
-import * as Job from "../enums/Job";
+import * as Job from "../enums/job-enums";
 
 const connection = {
   host: config.redis.host,

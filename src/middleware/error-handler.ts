@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Logger } from "../services/Logger";
+import { Logger } from "../services/log-service";
 
 export const errorHandler = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   Logger.error(`Error processing request: ${err.message} stack: ${err.stack}`);
