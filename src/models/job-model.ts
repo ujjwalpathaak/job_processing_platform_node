@@ -1,16 +1,16 @@
-import * as JobEnums from "../enums/job-enums";
+import { JobHandlerTypes, JobStatuses, JobCategories } from "../enums/job-enums";
 import { jobData } from "../types/job-types";
 
 export class Job {
   private readonly _id?: number;
   private readonly _createdAt: Date;
-  private _status: JobEnums.Statuses;
-  private readonly _jobCategory: JobEnums.Categories;
-  private readonly _jobHandler: JobEnums.HandlerTypes;
+  private _status: JobStatuses;
+  private readonly _jobCategory: JobCategories;
+  private readonly _jobHandler: JobHandlerTypes;
   private readonly _data: jobData;
 
-  constructor(jobHandler: JobEnums.HandlerTypes, category: JobEnums.Categories, data: jobData) {
-    this._status = JobEnums.Statuses.SCHEDULED;
+  constructor(jobHandler: JobHandlerTypes, category: JobCategories, data: jobData) {
+    this._status = JobStatuses.SCHEDULED;
     this._jobCategory = category;
     this._jobHandler = jobHandler;
     this._data = data ?? {};
@@ -21,7 +21,7 @@ export class Job {
     return this._id!;
   }
 
-  get status(): JobEnums.Statuses {
+  get status(): JobStatuses {
     return this._status;
   }
 
@@ -29,11 +29,11 @@ export class Job {
     return this._data;
   }
 
-  get category(): JobEnums.Categories {
+  get category(): JobCategories {
     return this._jobCategory;
   }
 
-  get handler(): JobEnums.HandlerTypes {
+  get handler(): JobHandlerTypes {
     return this._jobHandler;
   }
 

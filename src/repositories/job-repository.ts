@@ -1,8 +1,8 @@
 import { query } from "../database/connection";
 import { Job } from "../models/job-model";
-import * as JobEnums from "../enums/job-enums";
+import { JobStatuses } from "../enums/job-enums";
 
-export const createNewJob = async (job: Job): Promise<Job> => {
+export const create = async (job: Job): Promise<Job> => {
   const result = await query(
     "INSERT INTO jobs (job_handler, job_category, status, data) VALUES ($1, $2, $3, $4) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, created_at as createdAt, updated_at as updatedAt",
     [job.handler, job.category, job.status, JSON.stringify(job.data ?? {})],
@@ -39,7 +39,7 @@ export const update = async (id: number, data: any): Promise<Job | null> => {
     values.push(JSON.stringify(data.data));
   }
 
-  if (fields.length === 0) return this.findById(id);
+  if (fields.length === 0) return findById(id);
 
   fields.push(`updated_at = CURRENT_TIMESTAMP`);
   values.push(id);
@@ -52,9 +52,9 @@ export const update = async (id: number, data: any): Promise<Job | null> => {
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const addHistory = async (
+export const updateHistory = async (
   id: number,
-  status: JobEnums.Statuses,
+  status: JobStatuses,
   error?: string,
 ): Promise<Job | null> => {
   await query(

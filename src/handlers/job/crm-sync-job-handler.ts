@@ -1,14 +1,14 @@
-import { JobMessage } from "../../dto/job-message-dto";
+import { JobMessage } from "../../dto/job-dtos";
 import * as Job from "../../enums/job-enums";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class CrmSyncJobHandler extends AbstractJobHandler {
-  public identify(): Job.HandlerTypes {
-    return Job.HandlerTypes.CRM_SYNC;
+  public identify(): Job.JobHandlerTypes {
+    return Job.JobHandlerTypes.CRM_SYNC;
   }
 
-  public category(): Job.Categories {
-    return Job.Categories.EXTERNAL;
+  public category(): Job.JobCategories {
+    return Job.JobCategories.EXTERNAL;
   }
 
   public retries(): number {

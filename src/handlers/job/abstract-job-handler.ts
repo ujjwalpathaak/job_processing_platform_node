@@ -1,4 +1,4 @@
-import { JobMessage } from "../../dto/job-message-dto";
+import { JobMessage } from "../../dto/job-dtos";
 import { JobHandler } from "../../interfaces/job-interfaces";
 
 export abstract class AbstractJobHandler implements JobHandler {

@@ -1,18 +1,18 @@
 import { Worker } from "bullmq";
 import { config } from "../config/config";
-import { JobMessage } from "../dto/job-message-dto";
+import { JobMessage } from "../dto/job-dtos";
 import * as Job from "../enums/job-enums";
-import { jobHandlerFactory } from "../factory/job-handler-factory";
+// import { jobHandlerFactory } from "../factory/job-handler-factory";
 import { AbstractJobConsumer } from "./abstract-job-consumer";
 
 export class ExternalJobConsumer extends AbstractJobConsumer {
   protected consumerName = "ExternalJobConsumer";
-  protected category = Job.Categories.EXTERNAL;
+  protected category = Job.JobCategories.EXTERNAL;
 
   public readonly worker: Worker<JobMessage>;
 
   constructor() {
-    super(jobHandlerFactory);
+    super();
     this.worker = new Worker<JobMessage>("external.jobs", (job) => this.consumeInternal(job), {
       connection: {
         host: config.redis.host,

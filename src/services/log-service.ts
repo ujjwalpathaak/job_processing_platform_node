@@ -1,4 +1,4 @@
-import { LogMessage } from "../dto/log-message-dto";
+import { LogMessage } from "../dto/log-dtos";
 import * as Log from "../enums/log-enums";
 import { LogHandler } from "../interfaces/log-handlers";
 

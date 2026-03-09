@@ -1,10 +1,10 @@
-export enum Categories {
+export enum JobCategories {
   EXTERNAL = "EXTERNAL",
   STANDARD = "STANDARD",
   CRITICAL = "CRITICAL",
 }
 
-export enum HandlerTypes {
+export enum JobHandlerTypes {
   EMAIL = "email",
   REPORT_GENERATION = "report_generation",
   NOTIFICATION_CLEANUP = "notification_cleanup",
@@ -14,7 +14,7 @@ export enum HandlerTypes {
   REFUND = "refund",
 }
 
-export enum Statuses {
+export enum JobStatuses {
   SCHEDULED = "SCHEDULED",
   PUBLISHED = "PUBLISHED",
   PROCESSING = "PROCESSING",

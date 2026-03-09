@@ -1,6 +1,6 @@
 import * as LogEnums from "../../enums/log-enums";
 import { LogHandler } from "../../interfaces/log-handlers";
-import { LogMessage } from "../../dto/log-message-dto";
+import { LogMessage } from "../../dto/log-dtos";
 import fs from "fs";
 import path from "path";
 

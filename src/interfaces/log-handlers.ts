@@ -1,4 +1,4 @@
-import { LogMessage } from "../dto/log-message-dto";
+import { LogMessage } from "../dto/log-dtos";
 import * as LogEnums from "../enums/log-enums";
 
 export interface LogHandler {

@@ -1,14 +1,14 @@
-import { JobMessage } from "../../dto/job-message-dto";
-import * as JobEnums from "../../enums/job-enums";
+import { JobMessage } from "../../dto/job-dtos";
+import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class RefundJobHandler extends AbstractJobHandler {
-  public identify(): JobEnums.HandlerTypes {
-    return JobEnums.HandlerTypes.REFUND;
+  public identify(): JobHandlerTypes {
+    return JobHandlerTypes.REFUND;
   }
 
-  public category(): JobEnums.Categories {
-    return JobEnums.Categories.CRITICAL;
+  public category(): JobCategories {
+    return JobCategories.CRITICAL;
   }
 
   public retries(): number {

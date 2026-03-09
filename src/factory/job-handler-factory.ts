@@ -8,7 +8,7 @@ import { ReportGenerationJobHandler } from "../handlers/job/report-generation-jo
 import { WebhookTriggerJobHandler } from "../handlers/job/webhook-trigger-job-handler";
 
 export class JobHandlerFactoryClass {
-  private readonly handlers: Map<Job.HandlerTypes, JobHandler>;
+  private readonly handlers: Map<Job.JobHandlerTypes, JobHandler>;
 
   constructor() {
     const registeredHandlers: JobHandler[] = [
@@ -25,7 +25,7 @@ export class JobHandlerFactoryClass {
     );
   }
 
-  public get(handlerType: Job.HandlerTypes): JobHandler {
+  public get(handlerType: Job.JobHandlerTypes): JobHandler {
     if (!handlerType) {
       throw new Error(`Invalid handler type: ${handlerType}`);
     }

@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import { config } from "../config/config";
-import { JobMessage } from "../dto/job-message-dto";
+import { JobMessage } from "../dto/job-dtos";
 import { AbstractRetryRouterConsumer } from "./abstract-retry-router-consumer";
 
 export class RetryRouterConsumer extends AbstractRetryRouterConsumer {

@@ -8,6 +8,7 @@ import { setupRoutes } from "./routes/router";
 // import { startConsumers } from "./consumer";
 import { Logger } from "./services/log-service";
 import FileLogHandler from "./handlers/log/file-log-handler";
+import { Rabbit } from "./config/rabbit";
 
 const app: Express = express();
 
@@ -32,6 +33,8 @@ const startServer = async () => {
     // startConsumers();
     // console.log("BullMQ consumers started");
 
+    await Rabbit.getInstance();
+    console.log("RabbitMQ initialized");
     setupRoutes(app);
     console.log("Routes initialized successfully");
 
