@@ -17,8 +17,8 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
     return res.status(400).json(ApiResponse.failure(`Invalid job handler type: ${handler}`));
   }
   try {
-    const job = await createAndPublishJob(handler as JobHandlerTypes, jobData);
-    return res.status(201).json(ApiResponse.success(job, "Job created successfully"));
+    const jobId = await createAndPublishJob(handler as JobHandlerTypes, jobData);
+    return res.status(201).json(ApiResponse.success({ jobId }, "Job created successfully"));
   } catch {
     return res.status(500).json(ApiResponse.failure("Failed to create job"));
   }

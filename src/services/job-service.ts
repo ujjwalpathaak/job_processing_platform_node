@@ -8,15 +8,19 @@ import { getJobHandlerCategoryFromType } from "../managers/job-manager";
 export const createAndPublishJob = async (
   jobHandlerType: JobHandlerTypes,
   jobData: jobData,
-): Promise<Job> => {
+): Promise<number> => {
   const jobCategory: JobCategories = getJobHandlerCategoryFromType(jobHandlerType);
   if (!jobCategory) {
     throw new Error(`No category found for job handler type: ${jobHandlerType}`);
   }
 
   const job: Job = new Job(jobHandlerType, jobCategory, jobData);
-  const createdJob = await create(job);
+  const createdJob: Job = await create(job);
+  if (!createdJob.id) {
+    throw new Error("Failed to create job in the database");
+  }
+
   await pushJobToQueue(createdJob);
 
-  return job;
+  return createdJob.id;
 };

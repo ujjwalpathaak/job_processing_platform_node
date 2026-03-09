@@ -1,13 +1,12 @@
 import client, { Channel, ChannelModel } from "amqplib";
-import { Queues } from "../enums/queue-enums";
-import { JobCategories } from "../enums/job-enums";
+import { Queue } from "../enums/queue-enums";
 
 export class Rabbit {
   private static instance: Rabbit | null = null;
 
   private connection!: ChannelModel;
   private channel!: Channel;
-  private readonly queues = Object.values(Queues);
+  private readonly queues = Object.values(Queue);
 
   private constructor() {}
 
@@ -30,7 +29,7 @@ export class Rabbit {
     }
   }
 
-  public publish(queue: Queues, message: string): boolean {
+  public publish(queue: Queue, message: string): boolean {
     try {
       return this.channel.sendToQueue(queue, Buffer.from(message), { persistent: true });
     } catch (error) {
@@ -39,8 +38,8 @@ export class Rabbit {
     }
   }
 
-  public getQueueByCategory(_category: JobCategories): Queues {
-    return this.queues[0];
+  public getQueueByCategory(_category: string): Queue {
+    return this.queues.find((q) => q.toLowerCase().includes(_category.toLowerCase())) as Queue;
   }
 
   public async close(): Promise<void> {

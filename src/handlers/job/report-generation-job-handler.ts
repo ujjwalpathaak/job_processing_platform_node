@@ -21,6 +21,6 @@ export class ReportGenerationJobHandler extends AbstractJobHandler {
 
   protected async execute(message: JobMessage): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    console.log(`Report generated for job ${message.jobId}`);
+    console.log(`Report generated for job ${message.id}`);
   }
 }

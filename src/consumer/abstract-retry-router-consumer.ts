@@ -12,7 +12,7 @@ export abstract class AbstractRetryRouterConsumer {
     // await queue.add("retry-job", payload);
 
     console.log(
-      `${this.routerName} - ROUTED - from: ${backoff}, to: category=${payload.jobCategory}, jobId=${payload.jobId}`,
+      `${this.routerName} - ROUTED - from: ${backoff}, to: category=${payload.category}, jobId=${payload.id}`,
     );
   }
 }

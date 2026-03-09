@@ -24,6 +24,6 @@ export class NotificationCleanupJobHandler extends AbstractJobHandler {
       throw new Error("Payload missing for cleanup job");
     }
 
-    console.log(`Cleanup completed for job ${message.jobId}`);
+    console.log(`Cleanup completed for job ${message.id}`);
   }
 }

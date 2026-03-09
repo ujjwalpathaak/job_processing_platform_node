@@ -1,17 +1,17 @@
 import { Rabbit } from "../config/rabbit";
 import { JobMessage } from "../dto/job-dtos";
-import { Queues } from "../enums/queue-enums";
+import { Queue } from "../enums/queue-enums";
 import { Job } from "../models/job-model";
 
 export const pushJobToQueue = async (job: Job): Promise<void> => {
   if (!job.id) return;
   const rabbit = await Rabbit.getInstance();
-  const queue = rabbit.getQueueByCategory(job.category);
+  const queue = rabbit.getQueueByCategory(job.category as string);
 
   const payload: JobMessage = {
-    jobId: job.id!,
-    jobCategory: job.category,
-    jobHandler: job.handler,
+    id: job.id!,
+    category: job.category,
+    handler: job.handler,
     data: job.data || {},
   };
 
@@ -23,11 +23,11 @@ export const pushJobToRetryQueue = async (job: Job): Promise<void> => {
   const rabbit = await Rabbit.getInstance();
 
   const payload: JobMessage = {
-    jobId: job.id,
-    jobCategory: job.category,
-    jobHandler: job.handler,
+    id: job.id,
+    category: job.category,
+    handler: job.handler,
     data: job.data || {},
   };
 
-  await rabbit.publish(Queues.RETRY5SEC, JSON.stringify(payload));
+  await rabbit.publish(Queue.RETRY5SEC, JSON.stringify(payload));
 };

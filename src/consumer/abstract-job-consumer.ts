@@ -13,25 +13,25 @@ export abstract class AbstractJobConsumer {
     const payload = job.data;
     // const handler = this.jobHandlerFactory.get(payload.jobHandler);
 
-    if (payload.jobCategory !== this.category) {
+    if (payload.category !== this.category) {
       throw new Error(
-        `${this.consumerName} received wrong category. expected=${this.category} actual=${payload.jobCategory}`,
+        `${this.consumerName} received wrong category. expected=${this.category} actual=${payload.category}`,
       );
     }
 
-    console.log(`${this.consumerName} - processing jobId=${payload.jobId}`);
+    console.log(`${this.consumerName} - processing jobId=${payload.id}`);
 
-    // await updateJobStatus(payload.jobId, JobStatuses.PROCESSING);
+    // await updateJobStatus(payload.id, JobStatuses.PROCESSING);
 
     // try {
     //   await handler.process(payload);
-    //   // await updateJobStatus(payload.jobId, JobStatuses.PROCESSED);
-    //   console.log(`${this.consumerName} - processed jobId=${payload.jobId}`);
+    //   // await updateJobStatus(payload.id, JobStatuses.PROCESSED);
+    //   console.log(`${this.consumerName} - processed jobId=${payload.id}`);
     // } catch (error) {
     //   // const message = error instanceof Error ? error.message : "Unknown error";
     //   // const hasMoreRetries = job.attemptsMade + 1 <= handler.retries();
     //   // await updateJobStatus(
-    //   //   payload.jobId,
+    //   //   payload.id,
     //   //   hasMoreRetries ? JobStatuses.RETRY : JobStatuses.ERROR,
     //   //   message,
     //   // );

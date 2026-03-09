@@ -24,6 +24,6 @@ export class EmailJobHandler extends AbstractJobHandler {
       throw new Error("Invalid emailId");
     }
 
-    console.log(`Email sent for job ${message.jobId}`);
+    console.log(`Email sent for job ${message.id}`);
   }
 }

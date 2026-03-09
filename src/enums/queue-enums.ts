@@ -1,4 +1,4 @@
-export enum Queues {
+export enum Queue {
   STANDARD = "STANDARD",
   CRITICAL = "CRITICAL",
   EXTERNAL = "EXTERNAL",
