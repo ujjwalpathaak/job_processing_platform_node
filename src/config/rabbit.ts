@@ -42,6 +42,10 @@ export class Rabbit {
     return this.queues.find((q) => q.toLowerCase().includes(_category.toLowerCase())) as Queue;
   }
 
+  public getChannel(): Channel {
+    return this.channel;
+  }
+
   public async close(): Promise<void> {
     await this.channel.close();
     await this.connection.close();

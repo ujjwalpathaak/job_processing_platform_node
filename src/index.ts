@@ -5,7 +5,7 @@ import { config } from "./config/config";
 import { initializeDatabase } from "./database/migrations";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { setupRoutes } from "./routes/router";
-// import { startConsumers } from "./consumer";
+import { startConsumers } from "./consumer";
 import { Logger } from "./services/log-service";
 import FileLogHandler from "./handlers/log/file-log-handler";
 import { Rabbit } from "./config/rabbit";
@@ -29,10 +29,8 @@ const startServer = async () => {
     console.log("Database initialized successfully");
     Logger.init([new FileLogHandler()]);
     console.log("Logger initialized successfully");
-
-    // startConsumers();
-    // console.log("BullMQ consumers started");
-
+    await startConsumers();
+    console.log("RabbitMQ consumers started successfully");
     await Rabbit.getInstance();
     console.log("RabbitMQ initialized");
     setupRoutes(app);
@@ -40,6 +38,12 @@ const startServer = async () => {
 
     app.use(notFoundHandler);
     app.use(errorHandler);
+
+    process.on("SIGINT", async () => {
+      const rabbit = await Rabbit.getInstance();
+      await rabbit.close();
+      process.exit(0);
+    });
 
     const port = config.port as number;
     app.listen(port, () => {

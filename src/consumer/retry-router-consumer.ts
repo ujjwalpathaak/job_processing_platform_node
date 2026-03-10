@@ -1,34 +1,32 @@
-import { Worker } from "bullmq";
-import { config } from "../config/config";
 import { JobMessage } from "../dto/job-dtos";
-import { AbstractRetryRouterConsumer } from "./abstract-retry-router-consumer";
+import { Queue } from "../enums/queue-enums";
+import { Rabbit } from "../config/rabbit";
 
-export class RetryRouterConsumer extends AbstractRetryRouterConsumer {
+export class RetryRouterConsumer {
   protected routerName = "RetryRouterConsumer";
 
-  public readonly worker: Worker<JobMessage>;
+  constructor() {}
 
-  constructor() {
-    super();
-    this.worker = new Worker<JobMessage>(
-      "retry.route.queue",
-      async (job) => {
-        await this.routeInternal(job, "retry.route.queue");
-      },
-      {
-        connection: {
-          host: config.redis.host,
-          port: config.redis.port,
-        },
-      },
-    );
+  public async start(): Promise<void> {
+    const rabbit = await Rabbit.getInstance();
+    const channel = rabbit.getChannel();
 
-    this.worker.on("completed", (job) => {
-      console.log(`${this.routerName} - completed route job=${job.id}`);
-    });
+    channel.prefetch(10);
 
-    this.worker.on("failed", (job, err) => {
-      console.log(`${this.routerName} - failed route job=${job?.id} error=${err.message}`);
+    await channel.consume(Queue.STANDARD, async (msg) => {
+      if (!msg) return;
+
+      try {
+        const content: JobMessage = JSON.parse(msg.content.toString());
+        console.log(
+          `${this.routerName} - routing jobId=${content.id} to ${content.category} queue`,
+        );
+        channel.ack(msg);
+      } catch (error) {
+        console.error(`${this.routerName} error`, error);
+
+        channel.nack(msg, false, false);
+      }
     });
   }
 }

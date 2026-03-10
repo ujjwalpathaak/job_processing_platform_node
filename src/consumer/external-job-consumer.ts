@@ -1,31 +1,35 @@
-import { Worker } from "bullmq";
-import { config } from "../config/config";
+import { Rabbit } from "../config/rabbit";
+import { Queue } from "../enums/queue-enums";
 import { JobMessage } from "../dto/job-dtos";
 import * as Job from "../enums/job-enums";
-// import { jobHandlerFactory } from "../factory/job-handler-factory";
 import { AbstractJobConsumer } from "./abstract-job-consumer";
 
 export class ExternalJobConsumer extends AbstractJobConsumer {
   protected consumerName = "ExternalJobConsumer";
   protected category = Job.JobCategories.EXTERNAL;
 
-  public readonly worker: Worker<JobMessage>;
-
   constructor() {
     super();
-    this.worker = new Worker<JobMessage>("external.jobs", (job) => this.consumeInternal(job), {
-      connection: {
-        host: config.redis.host,
-        port: config.redis.port,
-      },
-    });
+  }
 
-    this.worker.on("completed", (job) => {
-      console.log(`${this.consumerName} - completed job=${job.id}`);
-    });
+  public async start(): Promise<void> {
+    const rabbit = await Rabbit.getInstance();
+    const channel = rabbit.getChannel();
 
-    this.worker.on("failed", (job, err) => {
-      console.log(`${this.consumerName} - failed job=${job?.id} error=${err.message}`);
+    channel.prefetch(10);
+
+    await channel.consume(Queue.EXTERNAL, async (msg) => {
+      if (!msg) return;
+
+      try {
+        const content: JobMessage = JSON.parse(msg.content.toString());
+        await this.consumeInternal(content);
+        channel.ack(msg);
+      } catch (error) {
+        console.error(`${this.consumerName} error`, error);
+
+        channel.nack(msg, false, false);
+      }
     });
   }
 }
