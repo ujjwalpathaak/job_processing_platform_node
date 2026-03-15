@@ -1,5 +1,6 @@
 import { JobMessage } from "../dto/job-dtos";
 import { JobCategories, JobStatuses } from "../enums/job-enums";
+import { resolveRetryQueue } from "../enums/queue-enums";
 import { JobHandlerFactory } from "../factory/job-handler-factory";
 import { updateHistory } from "../repositories/job-repository";
 import { pushMessageToRetryQueue } from "../services/job-producer";
@@ -33,11 +34,16 @@ export abstract class AbstractJobConsumer {
 
         const canRetry = attempt < handler.retries();
         if (canRetry) {
+          const backoffValue = handler.backoff()[attempt] ?? handler.backoff().at(-1);
+          const retryQueue = resolveRetryQueue(backoffValue);
           await updateHistory(message.id, JobStatuses.RETRY, errorMessage);
-          const requeued = await pushMessageToRetryQueue({
-            ...message,
-            attempt: attempt + 1,
-          });
+          const requeued = await pushMessageToRetryQueue(
+            {
+              ...message,
+              attempt: attempt + 1,
+            },
+            backoffValue,
+          );
 
           if (!requeued) {
             await updateHistory(message.id, JobStatuses.ERROR, "Failed to push job to retry queue");
@@ -46,7 +52,7 @@ export abstract class AbstractJobConsumer {
           }
 
           Logger.info(
-            `${this.consumerName} - queued retry for jobId=${message.id} nextAttempt=${attempt + 2}`,
+            `${this.consumerName} - queued retry for jobId=${message.id} nextAttempt=${attempt + 2} backoff=${backoffValue ?? "default"} queue=${retryQueue}`,
           );
           return;
         }

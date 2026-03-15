@@ -1,5 +1,5 @@
 import client, { Channel, ChannelModel } from "amqplib";
-import { Queue } from "../enums/queue-enums";
+import { Queue, RETRY_QUEUE_DELAYS } from "../enums/queue-enums";
 import { JobCategories } from "../enums/job-enums";
 
 export class Rabbit {
@@ -26,6 +26,20 @@ export class Rabbit {
     this.channel = await this.connection.createChannel();
 
     for (const queue of this.queues) {
+      const retryDelay = RETRY_QUEUE_DELAYS.find(({ queue: retryQueue }) => retryQueue === queue);
+
+      if (retryDelay) {
+        await this.channel.assertQueue(queue, {
+          durable: true,
+          arguments: {
+            "x-message-ttl": retryDelay.seconds * 1000,
+            "x-dead-letter-exchange": "",
+            "x-dead-letter-routing-key": Queue.RETRY_READY,
+          },
+        });
+        continue;
+      }
+
       await this.channel.assertQueue(queue, { durable: true });
     }
   }

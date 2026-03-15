@@ -16,7 +16,7 @@ export class RetryRouterConsumer {
 
     channel.prefetch(10);
 
-    await channel.consume(Queue.RETRY5SEC, async (msg) => {
+    await channel.consume(Queue.RETRY_READY, async (msg) => {
       if (!msg) return;
 
       try {
@@ -34,7 +34,9 @@ export class RetryRouterConsumer {
         }
 
         await updateHistory(content.id, JobStatuses.PUBLISHED);
-        Logger.info(`${this.routerName} - routed jobId=${content.id} to ${targetQueue} queue`);
+        Logger.info(
+          `${this.routerName} - routed expired retry jobId=${content.id} to ${targetQueue} queue`,
+        );
         channel.ack(msg);
       } catch (error) {
         Logger.error(`${this.routerName} error: ${error}`);

@@ -1,6 +1,6 @@
 import { Rabbit } from "../config/rabbit";
 import { JobMessage } from "../dto/job-dtos";
-import { Queue } from "../enums/queue-enums";
+import { Queue, resolveRetryQueue } from "../enums/queue-enums";
 import { Job } from "../models/job-model";
 
 export const pushJobToQueue = async (job: Job): Promise<boolean> => {
@@ -19,22 +19,11 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
   return rabbit.publish(queue, JSON.stringify(payload));
 };
 
-export const pushJobToRetryQueue = async (job: Job): Promise<void> => {
-  if (!job.id) return;
+export const pushMessageToRetryQueue = async (
+  message: JobMessage,
+  backoffValue?: string,
+): Promise<boolean> => {
   const rabbit = await Rabbit.getInstance();
-
-  const payload: JobMessage = {
-    id: job.id,
-    category: job.category,
-    handler: job.handler,
-    data: job.data || {},
-    attempt: 1,
-  };
-
-  await rabbit.publish(Queue.RETRY5SEC, JSON.stringify(payload));
-};
-
-export const pushMessageToRetryQueue = async (message: JobMessage): Promise<boolean> => {
-  const rabbit = await Rabbit.getInstance();
-  return rabbit.publish(Queue.RETRY5SEC, JSON.stringify(message));
+  const retryQueue = resolveRetryQueue(backoffValue);
+  return rabbit.publish(retryQueue, JSON.stringify(message));
 };
