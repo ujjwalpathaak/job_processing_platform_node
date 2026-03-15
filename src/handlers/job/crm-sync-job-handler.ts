@@ -24,7 +24,7 @@ export class CrmSyncJobHandler extends AbstractJobHandler {
   }
 
   protected async execute(_data: jobData): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+    // await new Promise((resolve) => setTimeout(resolve, 4000));
     throw new Error("CRM API timeout");
   }
 }

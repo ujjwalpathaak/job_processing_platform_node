@@ -8,7 +8,7 @@ export const setupRoutes = (app: Express) => {
 };
 
 const setupMainRoutes = (app: Express) => {
-  app.use(expressStatic(path.join(__dirname, "../static")));
+  app.use(expressStatic(path.join(process.cwd(), "static")));
 
   app.get("/api/health", (_req, res) => {
     res.json({ success: true, message: "Server is running" });

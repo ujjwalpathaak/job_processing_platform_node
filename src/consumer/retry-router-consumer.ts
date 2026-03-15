@@ -1,6 +1,7 @@
 import { JobMessage } from "../dto/job-dtos";
 import { Queue } from "../enums/queue-enums";
 import { Rabbit } from "../config/rabbit";
+import { Logger } from "../services/log-service";
 
 export class RetryRouterConsumer {
   protected routerName = "RetryRouterConsumer";
@@ -13,17 +14,17 @@ export class RetryRouterConsumer {
 
     channel.prefetch(10);
 
-    await channel.consume(Queue.STANDARD, async (msg) => {
+    await channel.consume(Queue.RETRY5SEC, async (msg) => {
       if (!msg) return;
 
       try {
         const content: JobMessage = JSON.parse(msg.content.toString());
-        console.log(
-          `${this.routerName} - routing jobId=${content.id} to ${content.category} queue`,
-        );
+        const targetQueue = rabbit.getQueueByCategory(content.category);
+        rabbit.publish(targetQueue, JSON.stringify(content));
+        Logger.info(`${this.routerName} - routed jobId=${content.id} to ${targetQueue} queue`);
         channel.ack(msg);
       } catch (error) {
-        console.error(`${this.routerName} error`, error);
+        Logger.error(`${this.routerName} error: ${error}`);
 
         channel.nack(msg, false, false);
       }

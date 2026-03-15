@@ -20,7 +20,7 @@ export const createAndPublishJob = async (
     throw new Error("Failed to create job in the database");
   }
 
-  await pushJobToQueue(createdJob);
+  await pushJobToQueue(job);
 
-  return createdJob.id;
+  return job.id;
 };

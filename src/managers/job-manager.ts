@@ -7,7 +7,7 @@ export const getJobHandlerCategoryFromType = (jobHandlerType: JobHandlerTypes): 
     ? jobHandlers[jobHandlerType]
     : undefined;
   if (!handler) {
-    throw new Error("Unsupported handler");
+    throw new Error("Unsupported handler for type: " + jobHandlerType);
   }
 
   return handler.category();

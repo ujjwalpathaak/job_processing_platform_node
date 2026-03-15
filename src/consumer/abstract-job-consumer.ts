@@ -19,17 +19,23 @@ export abstract class AbstractJobConsumer {
     Logger.info(
       `${this.consumerName} - processing jobId=${message.id} with handler=${message.handler}`,
     );
-
-    await update(message.id, JobStatuses.PROCESSING);
     try {
-      await handler.process(message.data);
+      await update(message.id, JobStatuses.PROCESSING);
+      try {
+        await handler.process(message.data);
+      } catch (error) {
+        Logger.handlerError(
+          `${this.consumerName} - failed to process jobId=${message.id} with error=${error}`,
+        );
+        await update(message.id, error);
+        return;
+      }
       await update(message.id, JobStatuses.PROCESSED);
       Logger.info(`${this.consumerName} - processed jobId=${message.id}`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      // const hasMoreRetries = me.attemptsMade + 1 <= handler.retries();
-      await update(message.id, errorMessage);
-      throw error;
+      Logger.error(
+        `${this.consumerName} - failed to process jobId=${message.id} with error=${error}`,
+      );
     }
   }
 }
