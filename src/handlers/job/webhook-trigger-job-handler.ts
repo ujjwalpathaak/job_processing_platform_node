@@ -1,5 +1,6 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { Logger } from "../../services/log-service";
+import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class WebhookTriggerJobHandler extends AbstractJobHandler {
@@ -18,15 +19,17 @@ export class WebhookTriggerJobHandler extends AbstractJobHandler {
   public backoff(): string[] {
     return ["5s", "30s", "60s"];
   }
-
-  protected async execute(_message: JobMessage): Promise<void> {
+  public process(data: jobData): Promise<void> {
+    return super.process(data);
+  }
+  protected async execute(_data: jobData): Promise<void> {
     await this.simulateNetworkLatency();
 
     if (Math.random() < 0.4) {
       throw new Error("Webhook responded with HTTP 502");
     }
 
-    console.log("Webhook delivered successfully");
+    Logger.handlerInfo("Webhook delivered successfully");
   }
 
   private async simulateNetworkLatency(): Promise<void> {

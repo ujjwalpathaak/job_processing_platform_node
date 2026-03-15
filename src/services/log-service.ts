@@ -17,14 +17,22 @@ export class Logger {
     }
   }
 
-  private static handle(message: string, level: Log.Level): void {
+  private static handle(message: string, level: Log.Level, fromHandler: boolean = false): void {
     const list = handlers.get(level);
     if (!list || list.length === 0) return;
 
     const logMessage = new LogMessage(message, level);
     for (const handler of list) {
-      handler.handle(logMessage);
+      handler.handle(logMessage, fromHandler);
     }
+  }
+
+  static handlerInfo(message: string): void {
+    this.handle(message, Log.Level.INFO, true);
+  }
+
+  static handlerError(message: string): void {
+    this.handle(message, Log.Level.ERROR, true);
   }
 
   static info(message: string): void {

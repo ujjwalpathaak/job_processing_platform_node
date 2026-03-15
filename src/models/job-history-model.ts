@@ -1,7 +1,7 @@
 import * as Job from "../enums/job-enums";
 
 export class JobStateHistory {
-  id: number | undefined;
+  id: string | undefined;
   jobId: number;
   status: Job.JobStatuses;
   createdAt: Date;

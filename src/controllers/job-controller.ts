@@ -4,6 +4,7 @@ import ApiResponse from "../dto/api-dtos";
 import { JobHandlerTypes } from "../enums/job-enums";
 import { jobData } from "../types/job-types";
 import { isValidJobHandlerType } from "../managers/job-manager";
+import { Logger } from "../services/log-service";
 
 export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const handler: string = req.params.handler;
@@ -19,7 +20,8 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
   try {
     const jobId = await createAndPublishJob(handler as JobHandlerTypes, jobData);
     return res.status(201).json(ApiResponse.success({ jobId }, "Job created successfully"));
-  } catch {
+  } catch (error) {
+    Logger.error(`Failed to create job with handler: ${handler}, error: ${error}`);
     return res.status(500).json(ApiResponse.failure("Failed to create job"));
   }
 };

@@ -4,8 +4,8 @@ import { JobStatuses } from "../enums/job-enums";
 
 export const create = async (job: Job): Promise<Job> => {
   const result = await query(
-    "INSERT INTO jobs (job_handler, job_category, status, data) VALUES ($1, $2, $3, $4) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, created_at as createdAt, updated_at as updatedAt",
-    [job.handler, job.category, job.status, JSON.stringify(job.data ?? {})],
+    "INSERT INTO jobs (id, job_handler, job_category, status, data) VALUES ($1, $2, $3, $4) RETURNING id, job_handler as jobHandler, job_category as jobCategory, status, data, created_at as createdAt, updated_at as updatedAt",
+    [job.id, job.handler, job.category, job.status, JSON.stringify(job.data ?? {})],
   );
 
   const row = result.rows[0];
@@ -17,7 +17,7 @@ export const create = async (job: Job): Promise<Job> => {
   return row;
 };
 
-export const findById = async (id: number): Promise<Job | null> => {
+export const findById = async (id: string): Promise<Job | null> => {
   const result = await query(
     "SELECT id, job_handler as jobHandler, job_category as jobCategory, status, data, history, created_at as createdAt, updated_at as updatedAt FROM jobs WHERE id = $1",
     [id],
@@ -25,7 +25,7 @@ export const findById = async (id: number): Promise<Job | null> => {
   return result.rows.length ? result.rows[0] : null;
 };
 
-export const update = async (id: number, data: any): Promise<Job | null> => {
+export const update = async (id: string, data: any): Promise<Job | null> => {
   const fields: string[] = [];
   const values: (string | number | null)[] = [];
   let paramIndex = 1;
@@ -53,7 +53,7 @@ export const update = async (id: number, data: any): Promise<Job | null> => {
 };
 
 export const updateHistory = async (
-  id: number,
+  id: string,
   status: JobStatuses,
   error?: string,
 ): Promise<Job | null> => {

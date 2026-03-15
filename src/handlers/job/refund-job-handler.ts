@@ -1,5 +1,6 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { Logger } from "../../services/log-service";
+import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class RefundJobHandler extends AbstractJobHandler {
@@ -18,12 +19,14 @@ export class RefundJobHandler extends AbstractJobHandler {
   public backoff(): string[] {
     return ["5s", "30s", "60s"];
   }
-
-  protected execute(_message: JobMessage): void {
+  public process(data: jobData): Promise<void> {
+    return super.process(data);
+  }
+  protected execute(_data: jobData): void {
     if (Math.random() < 0.3) {
       throw new Error("Duplicate refund detected");
     }
 
-    console.log("Refund completed");
+    Logger.handlerInfo("Refund completed");
   }
 }

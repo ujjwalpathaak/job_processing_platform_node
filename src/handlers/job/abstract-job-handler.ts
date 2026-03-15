@@ -1,5 +1,5 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandler } from "../../interfaces/job-interfaces";
+import { jobData } from "../../types/job-types";
 
 export abstract class AbstractJobHandler implements JobHandler {
   public abstract identify(): ReturnType<JobHandler["identify"]>;
@@ -10,34 +10,34 @@ export abstract class AbstractJobHandler implements JobHandler {
 
   public abstract backoff(): string[];
 
-  public async process(message: JobMessage): Promise<void> {
-    this.validate(message);
+  public async process(data: jobData): Promise<void> {
+    this.validate(data);
 
     try {
-      await this.beforeExecute(message);
-      await this.execute(message);
-      await this.afterExecute(message);
+      await this.beforeExecute(data);
+      await this.execute(data);
+      await this.afterExecute(data);
     } catch (error) {
-      await this.onFailure(message, error);
+      await this.onFailure(data, error);
       throw error;
     }
   }
 
-  protected async beforeExecute(_message: JobMessage): Promise<void> {
+  protected async beforeExecute(_data: jobData): Promise<void> {
     // no-op by default
   }
 
-  protected async afterExecute(_message: JobMessage): Promise<void> {
+  protected async afterExecute(_data: jobData): Promise<void> {
     // no-op by default
   }
 
-  protected async onFailure(_message: JobMessage, _error: unknown): Promise<void> {
+  protected async onFailure(_data: jobData, _error: unknown): Promise<void> {
     // no-op by default
   }
 
-  protected validate(_message: JobMessage): void {
+  protected validate(_data: jobData): void {
     // no-op by default
   }
 
-  protected abstract execute(message: JobMessage): Promise<void> | void;
+  protected abstract execute(data: jobData): Promise<void> | void;
 }

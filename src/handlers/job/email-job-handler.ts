@@ -1,5 +1,6 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { Logger } from "../../services/log-service";
+import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class EmailJobHandler extends AbstractJobHandler {
@@ -19,11 +20,15 @@ export class EmailJobHandler extends AbstractJobHandler {
     return ["5s", "30s"];
   }
 
-  protected execute(message: JobMessage): void {
+  public process(data: jobData): Promise<void> {
+    return super.process(data);
+  }
+
+  protected execute(data: jobData): void {
     if (Math.random() < 0.3) {
       throw new Error("Invalid emailId");
     }
 
-    console.log(`Email sent for job ${message.id}`);
+    Logger.handlerInfo(`Email sent to ${data.emailId} with subject: ${data.subject}`);
   }
 }

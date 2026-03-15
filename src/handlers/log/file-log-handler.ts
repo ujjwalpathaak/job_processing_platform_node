@@ -7,6 +7,8 @@ import path from "path";
 export default class FileLogHandler implements LogHandler {
   private static readonly ERROR_LOG_FILE = path.join("logs", "error.log");
   private static readonly LOG_FILE = path.join("logs", "application.log");
+  private static readonly HANDLER_LOG_FILE = path.join("logs", "handler.application.log");
+  private static readonly HANDLER_ERROR_LOG_FILE = path.join("logs", "handler.error.log");
 
   identify(): LogEnums.HandlerType {
     return LogEnums.HandlerType.FILE;
@@ -16,9 +18,9 @@ export default class FileLogHandler implements LogHandler {
     return [LogEnums.Level.INFO, LogEnums.Level.ERROR];
   }
 
-  handle(message: LogMessage): void {
+  handle(message: LogMessage, fromHandler: boolean = false): void {
     try {
-      const filePaths = this.getFilePath(message.level);
+      const filePaths = this.getFilePath(message.level, fromHandler);
       for (const filePath of filePaths) {
         this.writeToFile(filePath, message);
       }
@@ -38,12 +40,26 @@ export default class FileLogHandler implements LogHandler {
     fs.appendFileSync(filePath, logLine);
   }
 
-  private getFilePath(level: LogEnums.Level): string[] {
+  private getFilePath(level: LogEnums.Level, fromHandler: boolean = false): string[] {
     switch (level) {
       case LogEnums.Level.ERROR:
-        return [FileLogHandler.ERROR_LOG_FILE, FileLogHandler.LOG_FILE];
+        switch (fromHandler) {
+          case true:
+            return [FileLogHandler.HANDLER_LOG_FILE, FileLogHandler.HANDLER_ERROR_LOG_FILE];
+          case false:
+            return [FileLogHandler.ERROR_LOG_FILE, FileLogHandler.LOG_FILE];
+        }
+        break;
+
       case LogEnums.Level.INFO:
-        return [FileLogHandler.LOG_FILE];
+        switch (fromHandler) {
+          case true:
+            return [FileLogHandler.HANDLER_LOG_FILE];
+          case false:
+            return [FileLogHandler.LOG_FILE];
+        }
+        break;
+
       default:
         throw new Error(`Unsupported log level: ${level}`);
     }

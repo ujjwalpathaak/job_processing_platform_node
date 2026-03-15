@@ -1,5 +1,6 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { Logger } from "../../services/log-service";
+import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class NotificationCleanupJobHandler extends AbstractJobHandler {
@@ -18,12 +19,15 @@ export class NotificationCleanupJobHandler extends AbstractJobHandler {
   public backoff(): string[] {
     return [];
   }
+  public process(data: jobData): Promise<void> {
+    return super.process(data);
+  }
 
-  protected execute(message: JobMessage): void {
-    if (!message.data) {
+  protected execute(data: jobData): void {
+    if (!data) {
       throw new Error("Payload missing for cleanup job");
     }
 
-    console.log(`Cleanup completed for job ${message.id}`);
+    Logger.handlerInfo(`Cleanup completed for job ${data.id}`);
   }
 }

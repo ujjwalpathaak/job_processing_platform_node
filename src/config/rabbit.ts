@@ -1,5 +1,6 @@
 import client, { Channel, ChannelModel } from "amqplib";
 import { Queue } from "../enums/queue-enums";
+import { JobCategories } from "../enums/job-enums";
 
 export class Rabbit {
   private static instance: Rabbit | null = null;
@@ -38,7 +39,7 @@ export class Rabbit {
     }
   }
 
-  public getQueueByCategory(_category: string): Queue {
+  public getQueueByCategory(_category: keyof typeof JobCategories): Queue {
     return this.queues.find((q) => q.toLowerCase().includes(_category.toLowerCase())) as Queue;
   }
 

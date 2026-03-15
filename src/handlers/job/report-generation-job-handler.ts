@@ -1,5 +1,6 @@
-import { JobMessage } from "../../dto/job-dtos";
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { Logger } from "../../services/log-service";
+import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
 export class ReportGenerationJobHandler extends AbstractJobHandler {
@@ -18,9 +19,12 @@ export class ReportGenerationJobHandler extends AbstractJobHandler {
   public backoff(): string[] {
     return ["30s"];
   }
+  public process(data: jobData): Promise<void> {
+    return super.process(data);
+  }
 
-  protected async execute(message: JobMessage): Promise<void> {
+  protected async execute(data: jobData): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    console.log(`Report generated for job ${message.id}`);
+    Logger.handlerInfo(`Report generated for job ${data.id}`);
   }
 }

@@ -3,6 +3,7 @@ import { Queue } from "../enums/queue-enums";
 import { JobMessage } from "../dto/job-dtos";
 import * as Job from "../enums/job-enums";
 import { AbstractJobConsumer } from "./abstract-job-consumer";
+import { Logger } from "../services/log-service";
 
 export class StandardJobConsumer extends AbstractJobConsumer {
   protected consumerName = "StandardJobConsumer";
@@ -22,12 +23,14 @@ export class StandardJobConsumer extends AbstractJobConsumer {
       if (!msg) return;
 
       try {
+        Logger.info(
+          `${this.consumerName} - received message with content: ${msg.content.toString()}`,
+        );
         const content: JobMessage = JSON.parse(msg.content.toString());
         await this.consumeInternal(content);
         channel.ack(msg);
       } catch (error) {
-        console.error(`${this.consumerName} error`, error);
-
+        Logger.error(`${this.consumerName} error: ${error}`);
         channel.nack(msg, false, false);
       }
     });
