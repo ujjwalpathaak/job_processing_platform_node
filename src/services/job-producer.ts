@@ -13,6 +13,7 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
     category: job.category,
     handler: job.handler,
     data: job.data || {},
+    attempt: 0,
   };
 
   return rabbit.publish(queue, JSON.stringify(payload));
@@ -27,7 +28,13 @@ export const pushJobToRetryQueue = async (job: Job): Promise<void> => {
     category: job.category,
     handler: job.handler,
     data: job.data || {},
+    attempt: 1,
   };
 
   await rabbit.publish(Queue.RETRY5SEC, JSON.stringify(payload));
+};
+
+export const pushMessageToRetryQueue = async (message: JobMessage): Promise<boolean> => {
+  const rabbit = await Rabbit.getInstance();
+  return rabbit.publish(Queue.RETRY5SEC, JSON.stringify(message));
 };

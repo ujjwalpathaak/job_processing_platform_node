@@ -5,4 +5,5 @@ export interface JobMessage {
   category: JobCategories;
   handler: JobHandlerTypes;
   data: Record<string, unknown>;
+  attempt?: number;
 }

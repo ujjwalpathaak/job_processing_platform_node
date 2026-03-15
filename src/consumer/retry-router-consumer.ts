@@ -1,6 +1,8 @@
 import { JobMessage } from "../dto/job-dtos";
+import { JobStatuses } from "../enums/job-enums";
 import { Queue } from "../enums/queue-enums";
 import { Rabbit } from "../config/rabbit";
+import { updateHistory } from "../repositories/job-repository";
 import { Logger } from "../services/log-service";
 
 export class RetryRouterConsumer {
@@ -20,7 +22,18 @@ export class RetryRouterConsumer {
       try {
         const content: JobMessage = JSON.parse(msg.content.toString());
         const targetQueue = rabbit.getQueueByCategory(content.category);
-        rabbit.publish(targetQueue, JSON.stringify(content));
+        const published = rabbit.publish(targetQueue, JSON.stringify(content));
+        if (!published) {
+          await updateHistory(
+            content.id,
+            JobStatuses.ERROR,
+            "Failed to republish job from retry queue",
+          );
+          await updateHistory(content.id, JobStatuses.DEAD, "Retry republish failed");
+          throw new Error(`Failed to publish retried job ${content.id} to ${targetQueue}`);
+        }
+
+        await updateHistory(content.id, JobStatuses.PUBLISHED);
         Logger.info(`${this.routerName} - routed jobId=${content.id} to ${targetQueue} queue`);
         channel.ack(msg);
       } catch (error) {
