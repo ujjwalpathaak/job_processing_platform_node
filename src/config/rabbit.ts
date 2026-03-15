@@ -7,7 +7,7 @@ export class Rabbit {
 
   private connection!: ChannelModel;
   private channel!: Channel;
-  private readonly queues = Object.values(Queue);
+  private readonly queues: Queue[] = Object.values(Queue);
 
   private constructor() {}
 
@@ -39,8 +39,15 @@ export class Rabbit {
     }
   }
 
-  public getQueueByCategory(_category: keyof typeof JobCategories): Queue {
-    return this.queues.find((q) => q.toLowerCase().includes(_category.toLowerCase())) as Queue;
+  public getQueueByCategory(category: JobCategories): Queue {
+    switch (category) {
+      case JobCategories.STANDARD:
+        return Queue.STANDARD;
+      case JobCategories.CRITICAL:
+        return Queue.CRITICAL;
+      case JobCategories.EXTERNAL:
+        return Queue.EXTERNAL;
+    }
   }
 
   public getChannel(): Channel {

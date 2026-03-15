@@ -4,7 +4,7 @@ export const initializeDatabase = async () => {
   try {
     await query(`
       CREATE TABLE IF NOT EXISTS jobs (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY,
         job_handler VARCHAR(100) NOT NULL,
         job_category VARCHAR(100) NOT NULL,
         status VARCHAR(50) DEFAULT 'SCHEDULED',
@@ -17,16 +17,6 @@ export const initializeDatabase = async () => {
 
     await query(`
       CREATE INDEX IF NOT EXISTS jobs_created_at_idx ON jobs(created_at DESC);
-    `);
-
-    await query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
     `);
 
     console.log("Database tables initialized successfully");

@@ -31,6 +31,10 @@ export class Job {
     return this._data;
   }
 
+  get stringData(): string {
+    return JSON.stringify(this._data);
+  }
+
   get category(): JobCategories {
     return this._category;
   }
