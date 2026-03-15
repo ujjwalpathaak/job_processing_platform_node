@@ -1,6 +1,6 @@
 import { Express, static as expressStatic } from "express";
 import path from "path";
-import { createJob } from "../controllers/job-controller";
+import { createJob, getJobDetails, getJobs, getJobsUpdates } from "../controllers/job-controller";
 
 export const setupRoutes = (app: Express) => {
   setupMainRoutes(app);
@@ -15,10 +15,17 @@ const setupMainRoutes = (app: Express) => {
   });
 
   app.get("/", (_req, res) => {
-    res.sendFile(path.join(__dirname, "../static/index.html"));
+    res.sendFile(path.join(process.cwd(), "static/index.html"));
   });
 };
 
 const setupJobRoutes = (app: Express) => {
+  app.get("/jobs", getJobs);
+  app.get("/jobs/updates", getJobsUpdates);
+  app.get("/jobs/:id", getJobDetails);
+
+  app.get("/api/jobs", getJobs);
+  app.get("/api/jobs/updates", getJobsUpdates);
+  app.get("/api/jobs/:id", getJobDetails);
   app.post("/api/new/:handler", createJob);
 };

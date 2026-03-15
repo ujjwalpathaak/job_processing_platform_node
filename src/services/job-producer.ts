@@ -3,8 +3,8 @@ import { JobMessage } from "../dto/job-dtos";
 import { Queue } from "../enums/queue-enums";
 import { Job } from "../models/job-model";
 
-export const pushJobToQueue = async (job: Job): Promise<void> => {
-  if (!job.id) return;
+export const pushJobToQueue = async (job: Job): Promise<boolean> => {
+  if (!job.id) return false;
   const rabbit = await Rabbit.getInstance();
   const queue: Queue = rabbit.getQueueByCategory(job.category);
 
@@ -15,7 +15,7 @@ export const pushJobToQueue = async (job: Job): Promise<void> => {
     data: job.data || {},
   };
 
-  rabbit.publish(queue, JSON.stringify(payload));
+  return rabbit.publish(queue, JSON.stringify(payload));
 };
 
 export const pushJobToRetryQueue = async (job: Job): Promise<void> => {

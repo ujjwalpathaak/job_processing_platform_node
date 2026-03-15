@@ -24,6 +24,33 @@ The complete Global Job Dashboard has been implemented with:
 
 - **GET** `/api/jobs` - Get all jobs with complete data
 
+  **Optional query params:**
+  - `handler` (string)
+  - `status` (string)
+  - `category` (string)
+  - `search` (string, case-insensitive; checks id/handler/category/status/data)
+  - `sortBy` (`createdAt` | `updatedAt` | `status` | `jobHandler` | `jobCategory`)
+  - `sortOrder` (`asc` | `desc`)
+  - `limit` (integer `1-200`)
+  - `page` (integer `>=1`, requires `limit`)
+
+  When `page` + `limit` are provided, response `data` is paginated:
+
+  ```json
+  {
+    "items": [...],
+    "meta": {
+      "total": 1234,
+      "page": 2,
+      "limit": 50,
+      "totalPages": 25,
+      "hasMore": true
+    }
+  }
+  ```
+
+  Without pagination params, `data` remains a plain array for backward compatibility.
+
   ```json
   {
     "success": true,
@@ -50,8 +77,14 @@ The complete Global Job Dashboard has been implemented with:
 
 - **GET** `/api/jobs/updates?since={timestamp}` - Get jobs updated since timestamp
 
+  Supports the same optional filter/sort/pagination query params as `/api/jobs`.
+
   ```bash
   curl "http://localhost:3000/api/jobs/updates?since=2026-02-28T10:00:00.000Z"
+  ```
+
+  ```bash
+  curl "http://localhost:3000/api/jobs?status=ERROR&sortBy=updatedAt&sortOrder=desc&limit=50&page=1"
   ```
 
 - **GET** `/api/jobs/:id` - Get job by ID

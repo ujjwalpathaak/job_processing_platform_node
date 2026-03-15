@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <title>Global Job Dashboard</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,15 +18,15 @@
             --green: #16a34a;
             --red: #dc2626;
             --yellow: #ca8a04;
-            --shadow: 0 10px 25px rgba(0,0,0,0.06);
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
 
-                --gray: #6b7280;
-    --amber: #f59e0b;
-    --indigo: #6366f1;
-    --blue: #2563eb;
-    --green: #16a34a;
-    --red: #dc2626;
-    --dark-red: #7f1d1d;
+            --gray: #6b7280;
+            --amber: #f59e0b;
+            --indigo: #6366f1;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --red: #dc2626;
+            --dark-red: #7f1d1d;
 
         }
 
@@ -116,234 +117,515 @@
             overflow: auto;
         }
 
-        .muted { color: var(--muted); }
+        .muted {
+            color: var(--muted);
+        }
 
         .history-toggle {
-    cursor: pointer;
-    color: var(--blue);
-    font-size: 12px;
-    font-weight: 500;
-}
+            cursor: pointer;
+            color: var(--blue);
+            font-size: 12px;
+            font-weight: 500;
+        }
 
-.history {
-    margin-top: 10px;
-    border-left: 2px solid var(--border);
-    padding-left: 12px;
-}
+        .history {
+            margin-top: 10px;
+            border-left: 2px solid var(--border);
+            padding-left: 12px;
+        }
 
-.history-item {
-    margin-bottom: 10px;
-    position: relative;
-}
+        .history-item {
+            margin-bottom: 10px;
+            position: relative;
+        }
 
-.history-item::before {
-    content: "";
-    position: absolute;
-    left: -19px;
-    top: 3px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-}
+        .history-item::before {
+            content: "";
+            position: absolute;
+            left: -19px;
+            top: 3px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
 
-.history-stage.SCHEDULED { color: var(--gray); }
-.history-stage.RETRY { color: var(--amber); }
-.history-stage.PUBLISHED { color: var(--indigo); }
-.history-stage.PROCESSING { color: var(--blue); }
-.history-stage.ERROR { color: var(--red); }
-.history-stage.PROCESSED { color: var(--green); }
-.history-stage.DEAD { color: var(--dark-red); }
+        .history-stage.SCHEDULED {
+            color: var(--gray);
+        }
+
+        .history-stage.RETRY {
+            color: var(--amber);
+        }
+
+        .history-stage.PUBLISHED {
+            color: var(--indigo);
+        }
+
+        .history-stage.PROCESSING {
+            color: var(--blue);
+        }
+
+        .history-stage.ERROR {
+            color: var(--red);
+        }
+
+        .history-stage.PROCESSED {
+            color: var(--green);
+        }
+
+        .history-stage.DEAD {
+            color: var(--dark-red);
+        }
 
 
-.history-stage {
-    font-weight: 500;
-    font-size: 13px;
-}
+        .history-stage {
+            font-weight: 500;
+            font-size: 13px;
+        }
 
-.history-time {
-    font-size: 11px;
-    color: var(--muted);
-}
+        .history-time {
+            font-size: 11px;
+            color: var(--muted);
+        }
 
-.history-error {
-    margin-top: 4px;
-    padding: 8px;
-    background: rgba(220,38,38,0.08);
-    color: var(--red);
-    border-radius: 6px;
-    font-size: 12px;
-}
+        .history-error {
+            margin-top: 4px;
+            padding: 8px;
+            background: rgba(220, 38, 38, 0.08);
+            color: var(--red);
+            border-radius: 6px;
+            font-size: 12px;
+        }
 
+        .details-row td {
+            background: #fbfcfe;
+            padding: 0;
+        }
+
+        .details-panel {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
+            gap: 16px;
+        }
+
+        .details-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .details-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .details-empty {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .toggle-arrow {
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        @media (max-width: 960px) {
+            .details-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .pagination button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
     </style>
 </head>
+
 <body>
 
-<h2>🌍 Global Job Dashboard</h2>
+    <h2>🌍 Global Job Dashboard</h2>
 
-<div class="card">
-    <div class="filters">
-        <select id="handlerFilter">
-            <option value="">All Handlers</option>
-        </select>
-        <select id="statusFilter">
-            <option value="">All Status</option>
-        </select>
-        <select id="categoryFilter">
-            <option value="">All JobCategories</option>
-        </select>
-        <select id="sortBy">
-            <option value="createdAt">Sort: Created</option>
-            <option class="${status}}" value="status">Sort: Status</option>
-            <option value="jobHandler">Sort: Handler</option>
-        </select>
-        <input id="search" placeholder="Search jobs..." type="text"/>
+    <div class="card">
+        <div class="filters">
+            <select id="handlerFilter">
+                <option value="">All Handlers</option>
+            </select>
+            <select id="statusFilter">
+                <option value="">All Status</option>
+            </select>
+            <select id="categoryFilter">
+                <option value="">All JobCategories</option>
+            </select>
+            <select id="sortBy">
+                <option value="createdAt">Sort: Created</option>
+                <option value="status">Sort: Status</option>
+                <option value="jobHandler">Sort: Handler</option>
+            </select>
+            <select id="pageSize">
+                <option value="25">25 / page</option>
+                <option value="50" selected>50 / page</option>
+                <option value="100">100 / page</option>
+            </select>
+            <input id="search" placeholder="Search jobs..." type="text" />
+        </div>
+
+        <table id="jobs">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Handler</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="pagination">
+            <button id="prevPage" type="button">Prev</button>
+            <span class="page-label" id="pageLabel">Page 1</span>
+            <button id="nextPage" type="button">Next</button>
+        </div>
     </div>
 
-    <table id="jobs">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Handler</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Data</th>
-            <th>Created</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+    <script>
+        let visibleJobs = [];
+        let lastPollTime = new Date().toISOString();
+        let currentPage = 1;
+        let hasMore = false;
+        let totalPages = 1;
+        let totalItems = 0;
+        let searchDebounce = null;
+        const expandedJobIds = new Set();
+        const jobDetailsCache = new Map();
+        const loadingJobIds = new Set();
+        const handlerValues = new Set();
+        const statusValues = new Set();
+        const categoryValues = new Set();
 
-<script>
-    let allJobs = [];
-    let lastPollTime = new Date().toISOString();
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
-    async function loadInitial() {
-        const res = await fetch('/jobs');
-        allJobs = (await res.json()).data;
-        populateFilters();
-        render();
-    }
+        function getActiveJob(id) {
+            return jobDetailsCache.get(id) || visibleJobs.find(job => job.id === id) || null;
+        }
 
-    async function pollUpdates() {
-        const res = await fetch(`/jobs/updates?since=${lastPollTime}`);
-        const jobs = (await res.json()).data;
-        if (jobs.length) {
-            lastPollTime = new Date().toISOString();
-            jobs.forEach(j => {
-                const idx = allJobs.findIndex(x => x.id === j.id);
-                if (idx >= 0) allJobs[idx] = j;
-                else allJobs.unshift(j);
+        function normalizeHistory(job) {
+            if (!job) return [];
+
+            const history = Array.isArray(job.history) ? [...job.history] : [];
+            if (!history.length && job.status && job.createdAt) {
+                history.push({ status: job.status, timestamp: job.createdAt });
+            }
+
+            return history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        }
+
+        function renderHistory(job) {
+            const history = normalizeHistory(job);
+            if (!history.length) {
+                return '<div class="details-empty">No history available for this job yet.</div>';
+            }
+
+            return `
+                <div class="history">
+                    ${history.map(item => `
+                        <div class="history-item">
+                            <div class="history-stage ${escapeHtml(item.status)}">${escapeHtml(item.status)}</div>
+                            <div class="history-time">${new Date(item.timestamp).toLocaleString()}</div>
+                            ${item.error ? `<div class="history-error">${escapeHtml(item.error)}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderDetailsPanel(jobId) {
+            const job = getActiveJob(jobId);
+
+            if (loadingJobIds.has(jobId) && !job) {
+                return '<div class="details-empty">Loading job history...</div>';
+            }
+
+            if (!job) {
+                return '<div class="details-empty">Unable to load job details.</div>';
+            }
+
+            return `
+                <div class="details-panel">
+                    <div class="details-card">
+                        <div class="details-title">Execution Timeline</div>
+                        ${renderHistory(job)}
+                    </div>
+                    <div class="details-card">
+                        <div class="details-title">Payload</div>
+                        <pre>${escapeHtml(JSON.stringify(job.data || {}, null, 2))}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function fetchJobDetails(jobId) {
+            if (loadingJobIds.has(jobId)) return;
+
+            loadingJobIds.add(jobId);
+            render();
+
+            try {
+                const res = await fetch(`/jobs/${encodeURIComponent(jobId)}`);
+                const payload = await res.json();
+                if (payload.success && payload.data) {
+                    jobDetailsCache.set(jobId, payload.data);
+                }
+            } finally {
+                loadingJobIds.delete(jobId);
+                render();
+            }
+        }
+
+        function buildBaseQuery() {
+            const query = new URLSearchParams();
+            const handler = document.getElementById('handlerFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            const search = document.getElementById('search').value.trim();
+            const limit = Number(document.getElementById('pageSize').value);
+
+            if (handler) query.set('handler', handler);
+            if (status) query.set('status', status);
+            if (category) query.set('category', category);
+            if (search) query.set('search', search);
+            if (sortBy) query.set('sortBy', sortBy);
+            query.set('sortOrder', 'desc');
+            query.set('limit', String(limit));
+            query.set('page', String(currentPage));
+
+            return query;
+        }
+
+        function ingestFilterValues(jobs) {
+            jobs.forEach(job => {
+                if (job.jobHandler) handlerValues.add(job.jobHandler);
+                if (job.status) statusValues.add(job.status);
+                if (job.jobCategory) categoryValues.add(job.jobCategory);
             });
+        }
+
+        async function fetchJobs({ resetPage = false } = {}) {
+            if (resetPage) currentPage = 1;
+
+            const query = buildBaseQuery();
+            const res = await fetch(`/jobs?${query.toString()}`);
+            const payload = await res.json();
+            const data = payload.data;
+            const isPaginated = data && Array.isArray(data.items) && data.meta;
+
+            visibleJobs = isPaginated ? data.items : (data || []);
+            visibleJobs.forEach(job => {
+                const cached = jobDetailsCache.get(job.id);
+                if (cached && cached.updatedAt !== job.updatedAt) {
+                    jobDetailsCache.set(job.id, { ...cached, ...job });
+                }
+            });
+            ingestFilterValues(visibleJobs);
+            populateFilters();
+
+            if (isPaginated) {
+                hasMore = Boolean(data.meta.hasMore);
+                totalPages = Number(data.meta.totalPages || 1);
+                totalItems = Number(data.meta.total || 0);
+            } else {
+                const pageSize = Number(document.getElementById('pageSize').value);
+                hasMore = visibleJobs.length === pageSize;
+                totalPages = hasMore ? currentPage + 1 : currentPage;
+                totalItems = visibleJobs.length;
+            }
+
+            render();
+        }
+
+        async function pollUpdates() {
+            const query = buildBaseQuery();
+            query.delete('page');
+            query.delete('limit');
+            query.set('since', lastPollTime);
+
+            const res = await fetch(`/jobs/updates?${query.toString()}`);
+            const payload = await res.json();
+            const jobs = payload.data || [];
+
+            if (!jobs.length) return;
+
+            lastPollTime = new Date().toISOString();
+            if (currentPage !== 1) return;
+
+            const byId = new Map(visibleJobs.map(job => [job.id, job]));
+            jobs.forEach(job => byId.set(job.id, job));
+            visibleJobs = Array.from(byId.values());
+            jobs.forEach(job => {
+                if (jobDetailsCache.has(job.id)) {
+                    const cached = jobDetailsCache.get(job.id) || {};
+                    jobDetailsCache.set(job.id, { ...cached, ...job });
+                }
+            });
+
+            ingestFilterValues(jobs);
             populateFilters();
             render();
         }
-    }
 
-    function populateFilters() {
-        fillSelect('handlerFilter', allJobs.map(j => j.jobHandler));
-        fillSelect('statusFilter', allJobs.map(j => j.status));
-        fillSelect('categoryFilter', allJobs.map(j => j.jobCategory));
-    }
-
-    function fillSelect(id, values) {
-        const select = document.getElementById(id);
-        const current = select.value;
-        const unique = [...new Set(values.filter(Boolean))];
-
-        select.innerHTML = `<option value="">All</option>` +
-            unique.map(v => `<option value="${v}">${v}</option>`).join('');
-
-        select.value = current;
-    }
-
-    function render() {
-        const handler = handlerFilter.value;
-        const status = statusFilter.value;
-        const category = categoryFilter.value;
-        const search = document.getElementById('search').value.toLowerCase();
-        const sortBy = document.getElementById('sortBy').value;
-
-        let jobs = [...allJobs];
-
-        if (handler) jobs = jobs.filter(j => j.jobHandler === handler);
-        if (status) jobs = jobs.filter(j => j.status === status);
-        if (category) jobs = jobs.filter(j => j.jobCategory === category);
-
-        if (search) {
-            jobs = jobs.filter(j =>
-                JSON.stringify(j).toLowerCase().includes(search)
-            );
+        async function loadInitial() {
+            await fetchJobs();
         }
 
-        jobs.sort((a, b) => {
-            if (sortBy === 'createdAt')
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            return (a[sortBy] || '').localeCompare(b[sortBy] || '');
-        });
+        function populateFilters() {
+            fillSelect('handlerFilter', Array.from(handlerValues));
+            fillSelect('statusFilter', Array.from(statusValues));
+            fillSelect('categoryFilter', Array.from(categoryValues));
+        }
 
-        const tbody = document.querySelector('#jobs tbody');
-        tbody.innerHTML = '';
+        function fillSelect(id, values) {
+            const select = document.getElementById(id);
+            const current = select.value;
+            const unique = [...new Set(values.filter(Boolean))];
 
-        jobs.forEach(job => {
-            const row = document.createElement('tr');
+            select.innerHTML = `<option value="">All</option>` +
+                unique.map(v => `<option value="${v}">${v}</option>`).join('');
 
-            row.innerHTML = `
+            select.value = current;
+        }
+
+        function render() {
+            const tbody = document.querySelector('#jobs tbody');
+            tbody.innerHTML = '';
+
+            visibleJobs.forEach(job => {
+                const row = document.createElement('tr');
+                const isExpanded = expandedJobIds.has(job.id);
+                const detailsJob = getActiveJob(job.id) || job;
+
+                row.innerHTML = `
                 <td>${job.id}</td>
                 <td class="muted">${job.jobHandler}</td>
                 <td class="muted">${job.jobCategory}</td>
                 <td><span class="status ${job.status}">${job.status}</span></td>
-               <td>
-    <div class="history-toggle" onclick="toggleHistory(${job.id})">
-        ▾ View Details
-    </div>
-
-    <div id="history-${job.id}" style="display:none;">
-        <div class="history">
-            ${(job.history || []).map(h => `
-                <div class="history-item">
-                    <div class="history-stage ${h.status}">${h.status}</div>
-                    <div class="history-time">
-                        ${new Date(h.timestamp).toLocaleString()}
+                <td>
+                    <div class="history-toggle" data-job-id="${job.id}">
+                        <span class="toggle-arrow">${isExpanded ? '▾' : '▸'}</span>${isExpanded ? 'Hide Details' : 'View Details'}
                     </div>
-                    ${h.error ? `
-                        <div class="history-error">
-                            ${h.error}
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        </div>
-
-        <pre style="margin-top:10px;">
-${JSON.stringify(job.data, null, 2)}
-        </pre>
-    </div>
-</td>
+                </td>
 
                 <td class="muted">${new Date(job.createdAt).toLocaleString()}</td>
             `;
 
-            tbody.appendChild(row);
+                tbody.appendChild(row);
+
+                if (isExpanded) {
+                    const detailsRow = document.createElement('tr');
+                    detailsRow.className = 'details-row';
+                    detailsRow.innerHTML = `
+                        <td colspan="6">
+                            ${renderDetailsPanel(detailsJob.id)}
+                        </td>
+                    `;
+                    tbody.appendChild(detailsRow);
+                }
+            });
+
+            tbody.querySelectorAll('.history-toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const jobId = toggle.getAttribute('data-job-id');
+                    if (jobId) {
+                        toggleHistory(jobId);
+                    }
+                });
+            });
+
+            document.getElementById('pageLabel').textContent = `Page ${currentPage} of ${totalPages} • ${totalItems} jobs`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = !hasMore;
+        }
+        async function toggleHistory(id) {
+            if (expandedJobIds.has(id)) {
+                expandedJobIds.delete(id);
+                render();
+                return;
+            }
+
+            expandedJobIds.add(id);
+            render();
+
+            const currentJob = visibleJobs.find(job => job.id === id);
+            const cachedJob = jobDetailsCache.get(id);
+            const shouldRefreshDetails = !cachedJob || (currentJob && cachedJob.updatedAt !== currentJob.updatedAt);
+
+            if (shouldRefreshDetails) {
+                await fetchJobDetails(id);
+            }
+        }
+
+        document.querySelectorAll('.filters select')
+            .forEach(el => el.addEventListener('change', () => fetchJobs({ resetPage: true })));
+        document.getElementById('search').addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => fetchJobs({ resetPage: true }), 250);
         });
-    }
-function toggleHistory(id) {
-    const el = document.getElementById(`history-${id}`);
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
 
-    function toggleJson(id) {
-        const el = document.getElementById(`json-${id}`);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
+        document.getElementById('prevPage').addEventListener('click', async () => {
+            if (currentPage === 1) return;
+            currentPage -= 1;
+            await fetchJobs();
+        });
 
-    document.querySelectorAll('.filters select, .filters input')
-        .forEach(el => el.addEventListener('change', render));
+        document.getElementById('nextPage').addEventListener('click', async () => {
+            if (!hasMore) return;
+            currentPage += 1;
+            await fetchJobs();
+        });
 
-    loadInitial();
-<!--    setInterval(pollUpdates, 3000);-->
-</script>
+        loadInitial();
+        setInterval(pollUpdates, 3000);
+    </script>
 
 </body>
+
 </html>
