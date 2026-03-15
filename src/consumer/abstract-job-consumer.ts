@@ -20,7 +20,7 @@ export abstract class AbstractJobConsumer {
     }
 
     Logger.info(
-      `${this.consumerName} - processing jobId=${message.id} with handler=${message.handler} attempt=${attempt + 1}`,
+      `event=job.processing.started consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} category=${message.category}`,
     );
     try {
       await updateHistory(message.id, JobStatuses.PROCESSING);
@@ -29,7 +29,7 @@ export abstract class AbstractJobConsumer {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         Logger.handlerError(
-          `${this.consumerName} - failed to process jobId=${message.id} on attempt=${attempt + 1} with error=${errorMessage}`,
+          `event=job.processing.failed consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} error=${errorMessage}`,
         );
 
         const canRetry = attempt < handler.retries();
@@ -48,24 +48,32 @@ export abstract class AbstractJobConsumer {
           if (!requeued) {
             await updateHistory(message.id, JobStatuses.ERROR, "Failed to push job to retry queue");
             await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
+            Logger.error(
+              `event=job.retry.enqueue_failed consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} error=${errorMessage}`,
+            );
             return;
           }
 
           Logger.info(
-            `${this.consumerName} - queued retry for jobId=${message.id} nextAttempt=${attempt + 2} backoff=${backoffValue ?? "default"} queue=${retryQueue}`,
+            `event=job.retry.queued consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} currentAttempt=${attempt + 1} nextAttempt=${attempt + 2} backoff=${backoffValue ?? "default"} queue=${retryQueue}`,
           );
           return;
         }
 
         await updateHistory(message.id, JobStatuses.ERROR, errorMessage);
         await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
+        Logger.error(
+          `event=job.retry.exhausted consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} maxRetries=${handler.retries()} error=${errorMessage}`,
+        );
         return;
       }
       await updateHistory(message.id, JobStatuses.PROCESSED);
-      Logger.info(`${this.consumerName} - processed jobId=${message.id}`);
+      Logger.info(
+        `event=job.processing.completed consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1}`,
+      );
     } catch (error) {
       Logger.error(
-        `${this.consumerName} - failed to process jobId=${message.id} with error=${error}`,
+        `event=job.processing.unhandled_error consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} error=${error}`,
       );
     }
   }

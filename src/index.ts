@@ -21,7 +21,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   }
 
   Logger.info(
-    `Incoming request: ${req.method} ${req.path} from ${req.ip} at ${new Date().toISOString()}`,
+    `event=http.request.received method=${req.method} path=${req.path} ip=${req.ip} ts=${new Date().toISOString()}`,
   );
   next();
 });

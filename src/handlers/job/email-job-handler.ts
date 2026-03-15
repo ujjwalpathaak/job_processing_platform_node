@@ -29,6 +29,8 @@ export class EmailJobHandler extends AbstractJobHandler {
       throw new Error("Invalid emailId");
     }
 
-    Logger.handlerInfo(`Email sent to ${data.emailId} with subject: ${data.subject}`);
+    Logger.handlerInfo(
+      `event=handler.execute.success handler=${this.identify()} category=${this.category()} emailId=${data.emailId} subject=${data.subject}`,
+    );
   }
 }

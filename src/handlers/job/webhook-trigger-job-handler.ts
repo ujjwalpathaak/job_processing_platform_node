@@ -29,7 +29,9 @@ export class WebhookTriggerJobHandler extends AbstractJobHandler {
       throw new Error("Webhook responded with HTTP 502");
     }
 
-    Logger.handlerInfo("Webhook delivered successfully");
+    Logger.handlerInfo(
+      `event=handler.execute.success handler=${this.identify()} category=${this.category()} action=webhook_delivered`,
+    );
   }
 
   private async simulateNetworkLatency(): Promise<void> {

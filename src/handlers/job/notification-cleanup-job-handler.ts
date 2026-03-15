@@ -28,6 +28,8 @@ export class NotificationCleanupJobHandler extends AbstractJobHandler {
       throw new Error("Payload missing for cleanup job");
     }
 
-    Logger.handlerInfo(`Cleanup completed for job ${data.id}`);
+    Logger.handlerInfo(
+      `event=handler.execute.success handler=${this.identify()} category=${this.category()} cleanupJobId=${data.id}`,
+    );
   }
 }

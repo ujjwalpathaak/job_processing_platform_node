@@ -27,6 +27,8 @@ export class RefundJobHandler extends AbstractJobHandler {
       throw new Error("Duplicate refund detected");
     }
 
-    Logger.handlerInfo("Refund completed");
+    Logger.handlerInfo(
+      `event=handler.execute.success handler=${this.identify()} category=${this.category()} action=refund_completed`,
+    );
   }
 }
