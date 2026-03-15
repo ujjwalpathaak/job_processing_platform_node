@@ -16,6 +16,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req: Request, _res: Response, next: NextFunction) => {
+  if (req.method === "GET") {
+    return next();
+  }
+
   Logger.info(
     `Incoming request: ${req.method} ${req.path} from ${req.ip} at ${new Date().toISOString()}`,
   );
@@ -39,9 +43,18 @@ const startServer = async () => {
     app.use(notFoundHandler);
     app.use(errorHandler);
 
+    let shuttingDown = false;
     process.on("SIGINT", async () => {
-      const rabbit = await Rabbit.getInstance();
-      await rabbit.close();
+      if (shuttingDown) return;
+      shuttingDown = true;
+
+      try {
+        const rabbit = await Rabbit.getInstance();
+        await rabbit.close();
+      } catch (err) {
+        console.error("Shutdown error:", err);
+      }
+
       process.exit(0);
     });
 
