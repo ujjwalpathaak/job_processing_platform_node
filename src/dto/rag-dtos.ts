@@ -14,9 +14,7 @@ export type LogIngestionPayload = {
 
 export type JobCompletedPayload = {
   job_id: string;
-  event: "JOB_COMPLETED";
   handler?: string;
-  timestamp?: number;
 };
 
 export type LogRagEventPayload =
