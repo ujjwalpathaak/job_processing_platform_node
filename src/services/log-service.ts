@@ -9,6 +9,7 @@ export class Logger {
   private static async forwardToRag(
     message: string,
     level: Log.Level,
+    fromHandler: boolean,
     jobId?: string,
     handler?: string,
     emitCompletion?: boolean,
@@ -18,10 +19,21 @@ export class Logger {
     }
 
     const ragLevel = level === Log.Level.ERROR ? "ERROR" : "INFO";
+    const logSource = fromHandler ? "HANDLER" : "SYSTEM";
+    const logStream = fromHandler
+      ? ragLevel === "ERROR"
+        ? "HANDLER_ERROR"
+        : "HANDLER_APPLICATION"
+      : ragLevel === "ERROR"
+        ? "ERROR"
+        : "APPLICATION";
+
     await publishLogForRag({
       job_id: jobId,
       handler,
       log_level: ragLevel,
+      log_source: logSource,
+      log_stream: logStream,
       message,
       timestamp: Date.now(),
     });
@@ -51,7 +63,7 @@ export class Logger {
     handler?: string,
     emitCompletion?: boolean,
   ): void {
-    void this.forwardToRag(message, level, jobId, handler, emitCompletion);
+    void this.forwardToRag(message, level, fromHandler, jobId, handler, emitCompletion);
 
     const list = handlers.get(level);
     if (!list || list.length === 0) return;

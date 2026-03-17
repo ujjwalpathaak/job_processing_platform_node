@@ -21,6 +21,8 @@ export abstract class AbstractJobConsumer {
 
     Logger.info(
       `event=job.processing.started consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} category=${message.category}`,
+      message.id,
+      message.handler,
     );
     try {
       await updateHistory(message.id, JobStatuses.PROCESSING);
@@ -30,6 +32,8 @@ export abstract class AbstractJobConsumer {
         const errorMessage = error instanceof Error ? error.message : String(error);
         Logger.handlerError(
           `event=job.processing.failed consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} error=${errorMessage}`,
+          message.id,
+          message.handler,
         );
 
         const canRetry = attempt < handler.retries();
@@ -56,6 +60,8 @@ export abstract class AbstractJobConsumer {
 
           Logger.info(
             `event=job.retry.queued consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} currentAttempt=${attempt + 1} nextAttempt=${attempt + 2} backoff=${backoffValue ?? "default"} queue=${retryQueue}`,
+            message.id,
+            message.handler,
           );
           return;
         }
@@ -64,16 +70,25 @@ export abstract class AbstractJobConsumer {
         await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
         Logger.error(
           `event=job.retry.exhausted consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} maxRetries=${handler.retries()} error=${errorMessage}`,
+          message.id,
+          message.handler,
+          true,
         );
         return;
       }
       await updateHistory(message.id, JobStatuses.PROCESSED);
       Logger.info(
         `event=job.processing.completed consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1}`,
+        message.id,
+        message.handler,
+        true,
       );
     } catch (error) {
       Logger.error(
         `event=job.processing.unhandled_error consumer=${this.consumerName} jobId=${message.id} handler=${message.handler} attempt=${attempt + 1} error=${error}`,
+        message.id,
+        message.handler,
+        true,
       );
     }
   }
