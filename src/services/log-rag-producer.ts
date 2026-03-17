@@ -21,9 +21,7 @@ export const publishJobCompletedForRag = async (
     type: "JOB_COMPLETED",
     payload: {
       job_id: jobId,
-      event: "JOB_COMPLETED",
       handler,
-      timestamp: Date.now(),
     },
   };
 
