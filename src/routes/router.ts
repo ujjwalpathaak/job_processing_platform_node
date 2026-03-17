@@ -1,6 +1,7 @@
 import { Express, static as expressStatic } from "express";
 import path from "path";
 import { createJob, getJobDetails, getJobs, getJobsUpdates } from "../controllers/job-controller";
+import { ragQuery } from "../controllers/log-controller";
 
 export const setupRoutes = (app: Express) => {
   setupMainRoutes(app);
@@ -28,4 +29,5 @@ const setupJobRoutes = (app: Express) => {
   app.get("/api/jobs/updates", getJobsUpdates);
   app.get("/api/jobs/:id", getJobDetails);
   app.post("/api/new/:handler", createJob);
+  app.post("/api/rag/query", ragQuery);
 };
