@@ -3,6 +3,10 @@ import { query } from "./connection";
 export const initializeDatabase = async () => {
   try {
     await query(`
+      CREATE EXTENSION IF NOT EXISTS vector;
+    `);
+
+    await query(`
       CREATE TABLE IF NOT EXISTS jobs (
         id UUID PRIMARY KEY,
         job_handler VARCHAR(100) NOT NULL,
@@ -17,6 +21,52 @@ export const initializeDatabase = async () => {
 
     await query(`
       CREATE INDEX IF NOT EXISTS jobs_created_at_idx ON jobs(created_at DESC);
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS job_chunks (
+        id BIGSERIAL PRIMARY KEY,
+        job_id TEXT NOT NULL,
+        handler TEXT NOT NULL,
+        log_level TEXT NOT NULL,
+        log_source TEXT NOT NULL DEFAULT 'SYSTEM',
+        log_stream TEXT NOT NULL DEFAULT 'APPLICATION',
+        content TEXT NOT NULL,
+        embedding VECTOR(768) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await query(`
+      ALTER TABLE job_chunks
+      ADD COLUMN IF NOT EXISTS log_source TEXT NOT NULL DEFAULT 'SYSTEM';
+    `);
+
+    await query(`
+      ALTER TABLE job_chunks
+      ADD COLUMN IF NOT EXISTS log_stream TEXT NOT NULL DEFAULT 'APPLICATION';
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_handler ON job_chunks(handler);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_created_at ON job_chunks(created_at);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_log_source ON job_chunks(log_source);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_log_stream ON job_chunks(log_stream);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_embedding ON job_chunks
+      USING ivfflat (embedding vector_cosine_ops)
+      WITH (lists = 100);
     `);
 
     console.log("Database tables initialized successfully");
