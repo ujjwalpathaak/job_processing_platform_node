@@ -48,6 +48,11 @@ export const initializeDatabase = async () => {
     `);
 
     await query(`
+      ALTER TABLE job_chunks
+      ADD COLUMN IF NOT EXISTS metadata JSONB;
+    `);
+
+    await query(`
       CREATE INDEX IF NOT EXISTS idx_handler ON job_chunks(handler);
     `);
 

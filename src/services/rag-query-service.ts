@@ -1,51 +1,88 @@
 import { config } from "../config/config";
 import { RAGFilters, RetrievedChunk } from "../dto/rag-dtos";
-import { searchChunksHybrid } from "../repositories/job-chunk-repository";
-import { embedText } from "./embedding-service";
+import { JsonOutputParser, StringOutputParser } from "@langchain/core/output_parsers";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
+import { ChatOpenAI } from "@langchain/openai";
+import { getPgVectorStore } from "./langchain-pgvector-service";
 
 const KNOWN_SOURCES = ["HANDLER", "SYSTEM"];
 const KNOWN_STREAMS = ["APPLICATION", "ERROR", "HANDLER_APPLICATION", "HANDLER_ERROR", "MIXED"];
 
-const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => {
-  const response = await fetch(`${config.openai.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.openai.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.openai.chatModel,
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "Extract filters for log retrieval. Return JSON with optional keys: handler, log_level, log_source, log_stream. Use uppercase values for log_level, log_source, log_stream.",
-        },
-        {
-          role: "user",
-          content: queryText,
-        },
-      ],
-    }),
-  });
+const toRetrieverFilter = (filters: RAGFilters): Record<string, string> | undefined => {
+  const normalized: Record<string, string> = {};
 
-  if (!response.ok) {
-    throw new Error(`LLM request failed with status ${response.status}`);
+  if (filters.handler) {
+    normalized.handler = filters.handler;
   }
 
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+  if (filters.log_level) {
+    normalized.log_level = filters.log_level.toUpperCase();
+  }
+
+  if (filters.log_source) {
+    normalized.log_source = filters.log_source.toUpperCase();
+  }
+
+  if (filters.log_stream) {
+    normalized.log_stream = filters.log_stream.toUpperCase();
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
+const toRetrievedChunk = (doc: {
+  id?: string;
+  pageContent: string;
+  metadata?: Record<string, unknown>;
+}): RetrievedChunk => {
+  const metadata = doc.metadata ?? {};
+  const parsedId = Number.parseInt(String(doc.id ?? metadata.id ?? "0"), 10);
+
+  return {
+    id: Number.isNaN(parsedId) ? 0 : parsedId,
+    job_id: String(metadata.job_id ?? ""),
+    handler: String(metadata.handler ?? "unknown"),
+    log_level: String(metadata.log_level ?? "INFO"),
+    log_source: String(metadata.log_source ?? "SYSTEM"),
+    log_stream: String(metadata.log_stream ?? "APPLICATION"),
+    content: doc.pageContent,
+    created_at: String(metadata.created_at ?? new Date().toISOString()),
+    similarity: 0,
   };
+};
 
-  const raw = payload.choices?.[0]?.message?.content;
-  if (!raw) {
-    throw new Error("LLM response missing content");
+const getChatModel = (temperature: number): ChatOpenAI => {
+  if (!config.openai.apiKey) {
+    throw new Error("OpenAI API key is not configured.");
   }
+
+  return new ChatOpenAI({
+    apiKey: config.openai.apiKey,
+    model: config.openai.chatModel,
+    temperature,
+    configuration: {
+      baseURL: config.openai.baseUrl,
+    },
+  });
+};
+
+const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => {
+  const filterPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "Extract filters for log retrieval. Return only JSON with optional keys: handler, log_level, log_source, log_stream. Use uppercase values for log_level, log_source, log_stream.",
+    ],
+    ["human", "{queryText}"],
+  ]);
+
+  const raw = await filterPrompt
+    .pipe(getChatModel(0))
+    .pipe(new StringOutputParser())
+    .invoke({ queryText });
 
   try {
-    const parsed = JSON.parse(raw) as RAGFilters;
+    const parsed = await new JsonOutputParser<RAGFilters>().parse(raw);
     return {
       handler: parsed.handler,
       log_level: parsed.log_level?.toUpperCase(),
@@ -76,52 +113,67 @@ const synthesizeWithLLM = async (queryText: string, chunks: RetrievedChunk[]): P
     throw new Error("OpenAI API key is not configured.");
   }
 
-  const response = await fetch(`${config.openai.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.openai.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.openai.chatModel,
-      temperature: 0.1,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a log analysis assistant. Summarize root cause from retrieved chunks and keep answer concise and factual.",
-        },
-        {
-          role: "user",
-          content: `User query:\n${queryText}\n\nRetrieved chunks:\n${context}`,
-        },
-      ],
-    }),
+  const synthesisPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "You are a log analysis assistant. Summarize root cause from retrieved chunks and keep answer concise and factual.",
+    ],
+    ["human", "User query:\n{queryText}\n\nRetrieved chunks:\n{context}"],
+  ]);
+
+  const answer = await synthesisPrompt
+    .pipe(getChatModel(0.1))
+    .pipe(new StringOutputParser())
+    .invoke({ queryText, context });
+
+  return answer || chunks[0].content;
+};
+
+const retrieveChunksWithRetriever = async (
+  queryText: string,
+  filters: RAGFilters,
+  topK: number,
+): Promise<RetrievedChunk[]> => {
+  const vectorStore = await getPgVectorStore();
+  const retriever = vectorStore.asRetriever({
+    k: topK,
+    filter: toRetrieverFilter(filters),
   });
 
-  if (!response.ok) {
-    throw new Error(`LLM request failed with status ${response.status}`);
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-
-  return payload.choices?.[0]?.message?.content || chunks[0].content;
+  const docs = await retriever.invoke(queryText);
+  return docs.map((doc) =>
+    toRetrievedChunk({
+      id: doc.id,
+      pageContent: doc.pageContent,
+      metadata: (doc.metadata ?? {}) as Record<string, unknown>,
+    }),
+  );
 };
 
 export const runRagQuery = async (
   userQuery: string,
   topK: number = config.rag.topK,
 ): Promise<{ filters: RAGFilters; chunks: RetrievedChunk[]; answer: string }> => {
-  const filters = await extractFiltersWithLLM(userQuery);
-  const queryEmbedding = await embedText(userQuery);
-  const chunks = await searchChunksHybrid(queryEmbedding, filters, topK);
-  const answer = await synthesizeWithLLM(userQuery, chunks);
+  const chain = RunnableSequence.from([
+    RunnableLambda.from(async (input: { queryText: string; k: number }) => {
+      const filters = await extractFiltersWithLLM(input.queryText);
+      return { ...input, filters };
+    }),
+    RunnableLambda.from(async (input: { queryText: string; k: number; filters: RAGFilters }) => {
+      const chunks = await retrieveChunksWithRetriever(input.queryText, input.filters, input.k);
+      return { ...input, chunks };
+    }),
+    RunnableLambda.from(
+      async (input: { queryText: string; filters: RAGFilters; chunks: RetrievedChunk[] }) => {
+        const answer = await synthesizeWithLLM(input.queryText, input.chunks);
+        return {
+          filters: input.filters,
+          chunks: input.chunks,
+          answer,
+        };
+      },
+    ),
+  ]);
 
-  return {
-    filters,
-    chunks,
-    answer,
-  };
+  return chain.invoke({ queryText: userQuery, k: topK });
 };

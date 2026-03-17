@@ -1,27 +1,29 @@
 import { config } from "../config/config";
+import { OpenAIEmbeddings } from "@langchain/openai";
 
-export const embedText = async (input: string): Promise<number[]> => {
-  const response = await fetch(`${config.openai.baseUrl}/embeddings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.openai.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.rag.embeddingModel,
-      input,
-      dimensions: config.rag.embeddingDimensions,
-    }),
-  });
+let embeddingsClient: OpenAIEmbeddings | null = null;
 
-  if (!response.ok) {
-    throw new Error(`Embedding request failed with status ${response.status}`);
+export const getEmbeddingsClient = (): OpenAIEmbeddings => {
+  if (!config.openai.apiKey) {
+    throw new Error("OpenAI API key is not configured.");
   }
 
-  const payload = (await response.json()) as {
-    data?: Array<{ embedding?: number[] }>;
-  };
-  const embedding = payload.data?.[0]?.embedding;
+  if (!embeddingsClient) {
+    embeddingsClient = new OpenAIEmbeddings({
+      apiKey: config.openai.apiKey,
+      model: config.rag.embeddingModel,
+      dimensions: config.rag.embeddingDimensions,
+      configuration: {
+        baseURL: config.openai.baseUrl,
+      },
+    });
+  }
+
+  return embeddingsClient;
+};
+
+export const embedText = async (input: string): Promise<number[]> => {
+  const embedding = await getEmbeddingsClient().embedQuery(input);
 
   if (!embedding || embedding.length !== config.rag.embeddingDimensions) {
     throw new Error("Invalid embedding response from LLM");
