@@ -268,6 +268,86 @@
             color: var(--muted);
             font-size: 12px;
         }
+
+        .rag-panel {
+            margin-top: 16px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .rag-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .rag-input-row input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            background: white;
+        }
+
+        .rag-input-row #ragQueryInput {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .rag-input-row #ragTopK {
+            width: 90px;
+        }
+
+        .rag-input-row button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .rag-status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .rag-result {
+            margin-top: 12px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .rag-result-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .rag-chunk {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+            margin-bottom: 8px;
+        }
+
+        .rag-chunk-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .rag-empty {
+            color: var(--muted);
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -318,6 +398,33 @@
             <span class="page-label" id="pageLabel">Page 1</span>
             <button id="nextPage" type="button">Next</button>
         </div>
+
+        <div class="rag-panel">
+            <div class="details-title">Ask Log Assistant</div>
+            <div class="rag-input-row">
+                <input id="ragQueryInput" type="text" placeholder="Why did refund jobs fail in handler X?" />
+                <input id="ragTopK" type="number" min="1" max="30" value="10" />
+                <button id="ragQueryBtn" type="button">Query</button>
+            </div>
+            <div id="ragStatus" class="rag-status">Ready</div>
+
+            <div class="rag-result">
+                <div>
+                    <div class="rag-result-title">Answer</div>
+                    <pre id="ragAnswer">No query yet.</pre>
+                </div>
+
+                <div>
+                    <div class="rag-result-title">Filters</div>
+                    <pre id="ragFilters">-</pre>
+                </div>
+
+                <div>
+                    <div class="rag-result-title">Retrieved Chunks</div>
+                    <div id="ragChunks" class="rag-empty">No chunks yet.</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -334,6 +441,13 @@
         const handlerValues = new Set();
         const statusValues = new Set();
         const categoryValues = new Set();
+        const ragQueryInput = document.getElementById('ragQueryInput');
+        const ragTopKInput = document.getElementById('ragTopK');
+        const ragQueryBtn = document.getElementById('ragQueryBtn');
+        const ragStatus = document.getElementById('ragStatus');
+        const ragAnswer = document.getElementById('ragAnswer');
+        const ragFilters = document.getElementById('ragFilters');
+        const ragChunks = document.getElementById('ragChunks');
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -584,6 +698,70 @@
             document.getElementById('prevPage').disabled = currentPage === 1;
             document.getElementById('nextPage').disabled = !hasMore;
         }
+
+        function renderRagChunks(chunks) {
+            if (!Array.isArray(chunks) || chunks.length === 0) {
+                ragChunks.className = 'rag-empty';
+                ragChunks.textContent = 'No chunks returned for this query.';
+                return;
+            }
+
+            ragChunks.className = '';
+            ragChunks.innerHTML = chunks.map((chunk, index) => `
+                <div class="rag-chunk">
+                    <div class="rag-chunk-meta">
+                        #${index + 1}
+                        • job=${escapeHtml(chunk.job_id || '-')}
+                        • handler=${escapeHtml(chunk.handler || '-')}
+                        • level=${escapeHtml(chunk.log_level || '-')}
+                        • source=${escapeHtml(chunk.log_source || '-')}
+                        • stream=${escapeHtml(chunk.log_stream || '-')}
+                    </div>
+                    <pre>${escapeHtml(chunk.content || '')}</pre>
+                </div>
+            `).join('');
+        }
+
+        async function runRagQuery() {
+            const query = ragQueryInput.value.trim();
+            if (!query) {
+                ragStatus.textContent = 'Please enter a query.';
+                return;
+            }
+
+            const topK = Math.max(1, Math.min(30, Number(ragTopKInput.value) || 10));
+            ragTopKInput.value = String(topK);
+            ragQueryBtn.disabled = true;
+            ragStatus.textContent = 'Querying...';
+
+            try {
+                const response = await fetch('/api/rag/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, topK }),
+                });
+
+                const payload = await response.json();
+                if (!response.ok || payload.success === false) {
+                    throw new Error(payload.message || `Request failed with status ${response.status}`);
+                }
+
+                const result = payload.data || payload;
+                ragAnswer.textContent = result.answer || 'No answer generated.';
+                ragFilters.textContent = JSON.stringify(result.filters || {}, null, 2);
+                renderRagChunks(result.chunks || []);
+                ragStatus.textContent = 'Done';
+            } catch (error) {
+                ragStatus.textContent = 'Failed';
+                ragAnswer.textContent = error instanceof Error ? error.message : 'Request failed';
+                ragFilters.textContent = '-';
+                ragChunks.className = 'rag-empty';
+                ragChunks.textContent = 'No chunks available.';
+            } finally {
+                ragQueryBtn.disabled = false;
+            }
+        }
+
         async function toggleHistory(id) {
             if (expandedJobIds.has(id)) {
                 expandedJobIds.delete(id);
@@ -620,6 +798,17 @@
             if (!hasMore) return;
             currentPage += 1;
             await fetchJobs();
+        });
+
+        ragQueryBtn.addEventListener('click', () => {
+            void runRagQuery();
+        });
+
+        ragQueryInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                void runRagQuery();
+            }
         });
 
         loadInitial();
