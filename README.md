@@ -43,12 +43,16 @@ npm install
 cp .env.example .env
 ```
 
-4. Update the `.env` file with your PostgreSQL credentials:
+4. Update the `.env` file with your PostgreSQL credentials and Gemini API key (Google AI Studio free tier):
 
 ```
 PORT=3000
 DATABASE_URL=postgresql://user:password@localhost:5432/job_platform
 NODE_ENV=development
+GOOGLE_API_KEY=your_google_ai_studio_key
+GEMINI_CHAT_MODEL=gemini-1.5-flash
+GEMINI_EMBEDDING_MODEL=text-embedding-004
+EMBEDDING_DIMENSIONS=768
 ```
 
 5. Create the PostgreSQL database:

@@ -1,21 +1,18 @@
 import { config } from "../config/config";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-let embeddingsClient: OpenAIEmbeddings | null = null;
+let embeddingsClient: GoogleGenerativeAIEmbeddings | null = null;
 
-export const getEmbeddingsClient = (): OpenAIEmbeddings => {
-  if (!config.openai.apiKey) {
-    throw new Error("OpenAI API key is not configured.");
+export const getEmbeddingsClient = (): GoogleGenerativeAIEmbeddings => {
+  if (!config.gemini.apiKey) {
+    throw new Error("Google API key is not configured.");
   }
 
   if (!embeddingsClient) {
-    embeddingsClient = new OpenAIEmbeddings({
-      apiKey: config.openai.apiKey,
-      model: config.rag.embeddingModel,
-      dimensions: config.rag.embeddingDimensions,
-      configuration: {
-        baseURL: config.openai.baseUrl,
-      },
+    embeddingsClient = new GoogleGenerativeAIEmbeddings({
+      apiKey: config.gemini.apiKey,
+      model: config.gemini.embeddingModel,
+      baseUrl: config.gemini.baseUrl,
     });
   }
 

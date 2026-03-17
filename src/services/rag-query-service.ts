@@ -3,7 +3,7 @@ import { RAGFilters, RetrievedChunk } from "../dto/rag-dtos";
 import { JsonOutputParser, StringOutputParser } from "@langchain/core/output_parsers";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getPgVectorStore } from "./langchain-pgvector-service";
 
 const KNOWN_SOURCES = ["HANDLER", "SYSTEM"];
@@ -52,18 +52,16 @@ const toRetrievedChunk = (doc: {
   };
 };
 
-const getChatModel = (temperature: number): ChatOpenAI => {
-  if (!config.openai.apiKey) {
-    throw new Error("OpenAI API key is not configured.");
+const getChatModel = (temperature: number): ChatGoogleGenerativeAI => {
+  if (!config.gemini.apiKey) {
+    throw new Error("Google API key is not configured.");
   }
 
-  return new ChatOpenAI({
-    apiKey: config.openai.apiKey,
-    model: config.openai.chatModel,
+  return new ChatGoogleGenerativeAI({
+    apiKey: config.gemini.apiKey,
+    model: config.gemini.chatModel,
     temperature,
-    configuration: {
-      baseURL: config.openai.baseUrl,
-    },
+    baseUrl: config.gemini.baseUrl,
   });
 };
 
@@ -109,8 +107,8 @@ const synthesizeWithLLM = async (queryText: string, chunks: RetrievedChunk[]): P
     .map((chunk, index) => `Chunk ${index + 1}:\n${chunk.content}`)
     .join("\n\n");
 
-  if (!config.openai.apiKey) {
-    throw new Error("OpenAI API key is not configured.");
+  if (!config.gemini.apiKey) {
+    throw new Error("Google API key is not configured.");
   }
 
   const synthesisPrompt = ChatPromptTemplate.fromMessages([

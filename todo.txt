@@ -1,2 +1,3 @@
 1. Chat History - need to add another loop which summarizes old chat to give more context about the ques being asked
 2. Logs Warehousing 
+3. Check Package.json

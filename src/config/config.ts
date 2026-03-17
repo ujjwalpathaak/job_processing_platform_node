@@ -16,14 +16,14 @@ export const config = {
     lockTtlMs: parseInt(process.env.RAG_LOCK_TTL_MS || "5000", 10),
   },
   rag: {
-    embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
     embeddingDimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || "768", 10),
     retentionDays: parseInt(process.env.RAG_RETENTION_DAYS || "14", 10),
     topK: parseInt(process.env.RAG_TOP_K || "10", 10),
   },
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY,
-    baseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-    chatModel: process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini",
+  gemini: {
+    apiKey: process.env.GOOGLE_API_KEY,
+    baseUrl: process.env.GOOGLE_API_BASE_URL,
+    chatModel: process.env.GEMINI_CHAT_MODEL || "gemini-1.5-flash",
+    embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || "text-embedding-004",
   },
 };
