@@ -29,5 +29,6 @@ const setupJobRoutes = (app: Express) => {
   app.get("/api/jobs/updates", getJobsUpdates);
   app.get("/api/jobs/:id", getJobDetails);
   app.post("/api/new/:handler", createJob);
+
   app.post("/api/rag/query", ragQuery);
 };
