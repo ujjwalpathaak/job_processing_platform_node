@@ -8,6 +8,7 @@ import { setupRoutes } from "./routes/router";
 import { startConsumers } from "./consumer";
 import { Logger } from "./services/log-service";
 import FileLogHandler from "./handlers/log/file-log-handler";
+import { closeRedis } from "./config/redis";
 import { Rabbit } from "./config/rabbit";
 
 const app: Express = express();
@@ -51,6 +52,7 @@ const startServer = async () => {
       try {
         const rabbit = await Rabbit.getInstance();
         await rabbit.close();
+        await closeRedis();
       } catch (err) {
         console.error("Shutdown error:", err);
       }
