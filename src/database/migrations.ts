@@ -3,9 +3,7 @@ import { Logger } from "../services/log-service";
 
 export const initializeDatabase = async () => {
   try {
-    await query(`
-      CREATE EXTENSION IF NOT EXISTS vector;
-    `);
+    await query(`CREATE EXTENSION IF NOT EXISTS vector;`);
 
     await query(`
       CREATE TABLE IF NOT EXISTS jobs (
@@ -21,7 +19,8 @@ export const initializeDatabase = async () => {
     `);
 
     await query(`
-      CREATE INDEX IF NOT EXISTS jobs_created_at_idx ON jobs(created_at DESC);
+      CREATE INDEX IF NOT EXISTS jobs_created_at_idx 
+      ON jobs(created_at DESC);
     `);
 
     await query(`
@@ -33,24 +32,10 @@ export const initializeDatabase = async () => {
         log_source TEXT NOT NULL DEFAULT 'SYSTEM',
         log_stream TEXT NOT NULL DEFAULT 'APPLICATION',
         content TEXT NOT NULL,
-        embedding VECTOR(768) NOT NULL,
+        embedding VECTOR(782) NOT NULL,
+        metadata JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       );
-    `);
-
-    await query(`
-      ALTER TABLE job_chunks
-      ADD COLUMN IF NOT EXISTS log_source TEXT NOT NULL DEFAULT 'SYSTEM';
-    `);
-
-    await query(`
-      ALTER TABLE job_chunks
-      ADD COLUMN IF NOT EXISTS log_stream TEXT NOT NULL DEFAULT 'APPLICATION';
-    `);
-
-    await query(`
-      ALTER TABLE job_chunks
-      ADD COLUMN IF NOT EXISTS metadata JSONB;
     `);
 
     await query(`

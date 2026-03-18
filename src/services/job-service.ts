@@ -19,29 +19,27 @@ export const createAndPublishJob = async (
   jobHandlerType: JobHandlerTypes,
   jobData: jobData,
 ): Promise<string> => {
-  Logger.info(`job | create requested | handler=${jobHandlerType}`);
+  Logger.info(`create requested | handler=${jobHandlerType}`);
   const jobCategory: JobCategories = getJobHandlerCategoryFromType(jobHandlerType);
   if (!jobCategory) {
-    Logger.error(`job | create invalid handler | handler=${jobHandlerType}`);
+    Logger.error(`create invalid handler | handler=${jobHandlerType}`);
     throw new Error(`No category found for job handler type: ${jobHandlerType}`);
   }
 
   const job: Job = new Job(jobHandlerType, jobCategory, jobData);
   const createdJob: Job = await create(job);
   if (!createdJob.id) {
-    Logger.error(
-      `job | create persist failed | handler=${jobHandlerType} | category=${jobCategory}`,
-    );
+    Logger.error(`create persist failed | handler=${jobHandlerType} | category=${jobCategory}`);
     throw new Error("Failed to create job in the database");
   }
   Logger.info(
-    `job | create persisted | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
+    `create persisted | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
   );
 
   const publishSucceeded = await pushJobToQueue(job);
   if (!publishSucceeded) {
     Logger.error(
-      `job | create publish failed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
+      `create publish failed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
     );
     await updateHistory(job.id, JobStatuses.ERROR, "Failed to publish job to queue");
     throw new Error("Failed to publish job to queue");
@@ -49,7 +47,7 @@ export const createAndPublishJob = async (
 
   await updateHistory(job.id, JobStatuses.PUBLISHED);
   Logger.info(
-    `job | create completed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
+    `create completed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
   );
 
   return job.id;

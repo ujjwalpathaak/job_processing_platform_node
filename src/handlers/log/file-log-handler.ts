@@ -21,25 +21,21 @@ export default class FileLogHandler implements LogHandler {
     try {
       const destinations = this.getDestinations(message, fromHandler);
       for (const destination of destinations) {
-        this.writeToFile(destination.filePath, message, destination.stream);
+        this.writeToFile(destination.filePath, message);
       }
     } catch (error) {
       console.error("Failed to write log to file:", error);
     }
   }
 
-  private writeToFile(
-    filePath: string,
-    message: LogMessage,
-    stream: "JOB" | "APPLICATION" | "HANDLER",
-  ): void {
+  private writeToFile(filePath: string, message: LogMessage): void {
     const logDir = path.dirname(filePath);
 
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
 
-    const logLine = this.format(message, stream);
+    const logLine = this.format(message);
     fs.appendFileSync(filePath, logLine);
   }
 
@@ -67,7 +63,7 @@ export default class FileLogHandler implements LogHandler {
     );
   }
 
-  private format(message: LogMessage, stream: "JOB" | "APPLICATION" | "HANDLER"): string {
-    return `${message.timestamp} | ${message.level} | ${stream} | ${message.id} | ${message.message}\n`;
+  private format(message: LogMessage): string {
+    return `${message.timestamp} | ${message.level} | ${message.message}\n`;
   }
 }

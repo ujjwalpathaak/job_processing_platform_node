@@ -20,7 +20,7 @@ export abstract class AbstractJobConsumer {
     }
 
     Logger.info(
-      `job | processing started | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | category=${message.category}`,
+      `processing started | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | category=${message.category}`,
       message.id,
       message.handler,
     );
@@ -31,7 +31,7 @@ export abstract class AbstractJobConsumer {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         Logger.handlerError(
-          `job | processing failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
+          `processing failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
           message.id,
           message.handler,
         );
@@ -53,13 +53,13 @@ export abstract class AbstractJobConsumer {
             await updateHistory(message.id, JobStatuses.ERROR, "Failed to push job to retry queue");
             await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
             Logger.error(
-              `job | retry enqueue failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
+              `retry enqueue failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
             );
             return;
           }
 
           Logger.info(
-            `job | retry queued | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | currentAttempt=${attempt + 1} | nextAttempt=${attempt + 2} | backoff=${backoffValue ?? "default"} | queue=${retryQueue}`,
+            `retry queued | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | currentAttempt=${attempt + 1} | nextAttempt=${attempt + 2} | backoff=${backoffValue ?? "default"} | queue=${retryQueue}`,
             message.id,
             message.handler,
           );
@@ -69,7 +69,7 @@ export abstract class AbstractJobConsumer {
         await updateHistory(message.id, JobStatuses.ERROR, errorMessage);
         await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
         Logger.error(
-          `job | retry exhausted | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | maxRetries=${handler.retries()} | error=${errorMessage}`,
+          `retry exhausted | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | maxRetries=${handler.retries()} | error=${errorMessage}`,
           message.id,
           message.handler,
           true,
@@ -78,14 +78,14 @@ export abstract class AbstractJobConsumer {
       }
       await updateHistory(message.id, JobStatuses.PROCESSED);
       Logger.info(
-        `job | processing completed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1}`,
+        `processing completed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1}`,
         message.id,
         message.handler,
         true,
       );
     } catch (error) {
       Logger.error(
-        `job | processing unhandled error | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${error}`,
+        `processing unhandled error | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${error}`,
         message.id,
         message.handler,
         true,

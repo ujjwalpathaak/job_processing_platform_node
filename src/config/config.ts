@@ -16,7 +16,7 @@ export const config = {
     lockTtlMs: parseInt(process.env.RAG_LOCK_TTL_MS || "5000", 10),
   },
   rag: {
-    embeddingDimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || "768", 10),
+    embeddingDimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || "782", 10),
     retentionDays: parseInt(process.env.RAG_RETENTION_DAYS || "14", 10),
     topK: parseInt(process.env.RAG_TOP_K || "10", 10),
   },

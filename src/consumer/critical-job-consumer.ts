@@ -24,14 +24,14 @@ export class CriticalJobConsumer extends AbstractJobConsumer {
 
       try {
         Logger.info(
-          `job | consumer message received | consumer=${this.consumerName} | queue=${Queue.CRITICAL} | payload=${msg.content.toString()}`,
+          `consumer message received | consumer=${this.consumerName} | queue=${Queue.CRITICAL} | payload=${msg.content.toString()}`,
         );
         const content: JobMessage = JSON.parse(msg.content.toString());
         await this.consumeInternal(content);
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `job | consumer message failed | consumer=${this.consumerName} | queue=${Queue.CRITICAL} | error=${error}`,
+          `consumer message failed | consumer=${this.consumerName} | queue=${Queue.CRITICAL} | error=${error}`,
         );
         channel.nack(msg, false, false);
       }

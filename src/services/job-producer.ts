@@ -18,15 +18,15 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
   };
 
   Logger.info(
-    `job | publish attempt | queue=${queue} | jobId=${payload.id} | handler=${payload.handler} | category=${payload.category} | attempt=${payload.attempt}`,
+    `publish attempt | queue=${queue} | jobId=${payload.id} | handler=${payload.handler} | category=${payload.category} | attempt=${payload.attempt}`,
   );
   const published = rabbit.publish(queue, JSON.stringify(payload));
   if (!published) {
-    Logger.error(`job | publish failed | queue=${queue} | jobId=${payload.id}`);
+    Logger.error(`publish failed | queue=${queue} | jobId=${payload.id}`);
     return false;
   }
 
-  Logger.info(`job | publish success | queue=${queue} | jobId=${payload.id}`);
+  Logger.info(`publish success | queue=${queue} | jobId=${payload.id}`);
   return true;
 };
 
@@ -37,14 +37,14 @@ export const pushMessageToRetryQueue = async (
   const rabbit = await Rabbit.getInstance();
   const retryQueue = resolveRetryQueue(backoffValue);
   Logger.info(
-    `job | retry publish attempt | queue=${retryQueue} | jobId=${message.id} | handler=${message.handler} | attempt=${message.attempt ?? 0} | backoff=${backoffValue ?? "default"}`,
+    `retry publish attempt | queue=${retryQueue} | jobId=${message.id} | handler=${message.handler} | attempt=${message.attempt ?? 0} | backoff=${backoffValue ?? "default"}`,
   );
   const published = rabbit.publish(retryQueue, JSON.stringify(message));
   if (!published) {
-    Logger.error(`job | retry publish failed | queue=${retryQueue} | jobId=${message.id}`);
+    Logger.error(`retry publish failed | queue=${retryQueue} | jobId=${message.id}`);
     return false;
   }
 
-  Logger.info(`job | retry publish success | queue=${retryQueue} | jobId=${message.id}`);
+  Logger.info(`retry publish success | queue=${retryQueue} | jobId=${message.id}`);
   return true;
 };
