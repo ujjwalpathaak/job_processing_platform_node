@@ -98,7 +98,7 @@ const parseJobQueryOptions = (
 
 export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const handler: string = req.params.handler;
-  const jobData: jobData = req.body.data || {};
+  const jobData: jobData = req.body || {};
   Logger.info(`event=api.job.create_received handler=${handler || "missing"}`);
   if (!handler) {
     Logger.error("event=api.job.create_validation_failed reason=missing_handler");

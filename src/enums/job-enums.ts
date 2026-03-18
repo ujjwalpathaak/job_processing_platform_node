@@ -7,7 +7,6 @@ export enum JobCategories {
 export enum JobHandlerTypes {
   EMAIL = "email",
   REPORT_GENERATION = "report_generation",
-  NOTIFICATION_CLEANUP = "notification_cleanup",
   WEBHOOK_TRIGGER = "webhook_trigger",
   CRM_SYNC = "crm_sync",
   PAYMENT = "payment",
