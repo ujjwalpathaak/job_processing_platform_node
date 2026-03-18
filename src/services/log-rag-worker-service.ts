@@ -18,6 +18,14 @@ const summarizeMessage = (message: string): string => {
     return "No message details available";
   }
 
+  const pipeParts = message
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (pipeParts.length >= 2) {
+    return pipeParts.slice(0, 3).join(" | ");
+  }
+
   const eventMatch = message.match(/event=([^\s]+)/);
   if (eventMatch?.[1]) {
     return eventMatch[1].replace(/\./g, " ").replace(/_/g, " ").trim();
@@ -113,5 +121,5 @@ export const finalizeJobLogsForRag = async (
     await releaseJobLock(jobId, lockToken);
   }
 
-  Logger.info(`event=rag.job.finalized jobId=${jobId}`);
+  Logger.info(`rag | job finalized | jobId=${jobId} | handler=${fallbackHandler}`);
 };

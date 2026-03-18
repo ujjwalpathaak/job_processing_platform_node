@@ -22,24 +22,30 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   }
 
   Logger.info(
-    `event=http.request.received method=${req.method} path=${req.path} ip=${req.ip} ts=${new Date().toISOString()}`,
+    `app | http request received | method=${req.method} | path=${req.path} | ip=${req.ip} | ts=${new Date().toISOString()}`,
   );
   next();
 });
 
 const startServer = async () => {
   try {
-    console.log("Initializing database...");
-    await initializeDatabase();
-    console.log("Database initialized successfully");
     Logger.init([new FileLogHandler()]);
-    console.log("Logger initialized successfully");
+    Logger.info("app | bootstrap | logger initialized");
+
+    Logger.info("app | bootstrap | database initializing");
+    await initializeDatabase();
+    Logger.info("app | bootstrap | database initialized");
+
+    Logger.info("app | bootstrap | consumers starting");
     await startConsumers();
-    console.log("RabbitMQ consumers started successfully");
+    Logger.info("app | bootstrap | consumers started");
+
+    Logger.info("app | bootstrap | rabbit initializing");
     await Rabbit.getInstance();
-    console.log("RabbitMQ initialized");
+    Logger.info("app | bootstrap | rabbit initialized");
+
     setupRoutes(app);
-    console.log("Routes initialized successfully");
+    Logger.info("app | bootstrap | routes initialized");
 
     app.use(notFoundHandler);
     app.use(errorHandler);
@@ -48,13 +54,15 @@ const startServer = async () => {
     process.on("SIGINT", async () => {
       if (shuttingDown) return;
       shuttingDown = true;
+      Logger.info("app | shutdown | signal=SIGINT | state=started");
 
       try {
         const rabbit = await Rabbit.getInstance();
         await rabbit.close();
         await closeRedis();
+        Logger.info("app | shutdown | signal=SIGINT | state=completed");
       } catch (err) {
-        console.error("Shutdown error:", err);
+        Logger.error(`app | shutdown | signal=SIGINT | state=failed | error=${err}`);
       }
 
       process.exit(0);
@@ -62,11 +70,10 @@ const startServer = async () => {
 
     const port = config.port as number;
     app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-      console.log(`Environment: ${config.nodeEnv}`);
+      Logger.info(`app | server started | url=http://localhost:${port} | env=${config.nodeEnv}`);
     });
   } catch (error) {
-    console.error("Failed to start server:", error);
+    Logger.error(`app | bootstrap | state=failed | error=${error}`);
     process.exit(1);
   }
 };

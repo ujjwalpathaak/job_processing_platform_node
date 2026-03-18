@@ -1,4 +1,5 @@
 import { query } from "./connection";
+import { Logger } from "../services/log-service";
 
 export const initializeDatabase = async () => {
   try {
@@ -74,9 +75,9 @@ export const initializeDatabase = async () => {
       WITH (lists = 100);
     `);
 
-    console.log("Database tables initialized successfully");
+    Logger.info("db | migrations | initialized");
   } catch (error) {
-    console.error("Database initialization error", error);
+    Logger.error(`db | migrations | failed | error=${error}`);
     throw error;
   }
 };

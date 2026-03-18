@@ -2,7 +2,6 @@ import * as Job from "../enums/job-enums";
 import { JobHandler } from "../interfaces/job-interfaces";
 import { CrmSyncJobHandler } from "../handlers/job/crm-sync-job-handler";
 import { EmailJobHandler } from "../handlers/job/email-job-handler";
-import { NotificationCleanupJobHandler } from "../handlers/job/notification-cleanup-job-handler";
 import { RefundJobHandler } from "../handlers/job/refund-job-handler";
 import { ReportGenerationJobHandler } from "../handlers/job/report-generation-job-handler";
 import { WebhookTriggerJobHandler } from "../handlers/job/webhook-trigger-job-handler";
@@ -14,7 +13,6 @@ export class JobHandlerFactoryClass {
     const registeredHandlers: JobHandler[] = [
       new EmailJobHandler(),
       new ReportGenerationJobHandler(),
-      new NotificationCleanupJobHandler(),
       new WebhookTriggerJobHandler(),
       new CrmSyncJobHandler(),
       new RefundJobHandler(),

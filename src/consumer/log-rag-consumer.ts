@@ -30,7 +30,7 @@ export class LogRagConsumer {
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `event=consumer.message.failed consumer=${this.consumerName} queue=${Queue.LOG_RAG} error=${error}`,
+          `rag | consumer message failed | consumer=${this.consumerName} | queue=${Queue.LOG_RAG} | error=${error}`,
         );
         channel.nack(msg, false, true);
       }

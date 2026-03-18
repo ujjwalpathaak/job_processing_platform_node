@@ -5,10 +5,9 @@ import fs from "fs";
 import path from "path";
 
 export default class FileLogHandler implements LogHandler {
-  private static readonly ERROR_LOG_FILE = path.join("logs", "error.log");
-  private static readonly LOG_FILE = path.join("logs", "application.log");
-  private static readonly HANDLER_LOG_FILE = path.join("logs", "handler.application.log");
-  private static readonly HANDLER_ERROR_LOG_FILE = path.join("logs", "handler.error.log");
+  private static readonly JOB_LOG_FILE = path.join("logs", "job.log");
+  private static readonly APPLICATION_LOG_FILE = path.join("logs", "application.log");
+  private static readonly HANDLER_LOG_FILE = path.join("logs", "handler.log");
 
   identify(): LogEnums.HandlerType {
     return LogEnums.HandlerType.FILE;
@@ -20,52 +19,55 @@ export default class FileLogHandler implements LogHandler {
 
   handle(message: LogMessage, fromHandler: boolean = false): void {
     try {
-      const filePaths = this.getFilePath(message.level, fromHandler);
-      for (const filePath of filePaths) {
-        this.writeToFile(filePath, message);
+      const destinations = this.getDestinations(message, fromHandler);
+      for (const destination of destinations) {
+        this.writeToFile(destination.filePath, message, destination.stream);
       }
     } catch (error) {
       console.error("Failed to write log to file:", error);
     }
   }
 
-  private writeToFile(filePath: string, message: LogMessage): void {
+  private writeToFile(
+    filePath: string,
+    message: LogMessage,
+    stream: "JOB" | "APPLICATION" | "HANDLER",
+  ): void {
     const logDir = path.dirname(filePath);
 
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
 
-    const logLine = this.format(message);
+    const logLine = this.format(message, stream);
     fs.appendFileSync(filePath, logLine);
   }
 
-  private getFilePath(level: LogEnums.Level, fromHandler: boolean = false): string[] {
-    switch (level) {
-      case LogEnums.Level.ERROR:
-        switch (fromHandler) {
-          case true:
-            return [FileLogHandler.HANDLER_LOG_FILE, FileLogHandler.HANDLER_ERROR_LOG_FILE];
-          case false:
-            return [FileLogHandler.ERROR_LOG_FILE, FileLogHandler.LOG_FILE];
-        }
-        break;
-
-      case LogEnums.Level.INFO:
-        switch (fromHandler) {
-          case true:
-            return [FileLogHandler.HANDLER_LOG_FILE];
-          case false:
-            return [FileLogHandler.LOG_FILE];
-        }
-        break;
-
-      default:
-        throw new Error(`Unsupported log level: ${level}`);
+  private getDestinations(
+    message: LogMessage,
+    fromHandler: boolean,
+  ): Array<{ filePath: string; stream: "JOB" | "APPLICATION" | "HANDLER" }> {
+    if (fromHandler) {
+      return [{ filePath: FileLogHandler.HANDLER_LOG_FILE, stream: "HANDLER" }];
     }
+
+    if (this.isJobLog(message.message)) {
+      return [{ filePath: FileLogHandler.JOB_LOG_FILE, stream: "JOB" }];
+    }
+
+    return [{ filePath: FileLogHandler.APPLICATION_LOG_FILE, stream: "APPLICATION" }];
   }
 
-  private format(message: LogMessage): string {
-    return `[${message.id}] [${message.timestamp}] [${message.level}] ${message.message}\n`;
+  private isJobLog(message: string): boolean {
+    const normalized = message.trim().toLowerCase();
+    return (
+      normalized.startsWith("job |") ||
+      normalized.startsWith("rag |") ||
+      normalized.includes("| jobid=")
+    );
+  }
+
+  private format(message: LogMessage, stream: "JOB" | "APPLICATION" | "HANDLER"): string {
+    return `${message.timestamp} | ${message.level} | ${stream} | ${message.id} | ${message.message}\n`;
   }
 }

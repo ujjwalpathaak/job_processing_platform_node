@@ -1,7 +1,7 @@
 // seed-jobs.js
 import fetch from "node-fetch";
 
-const BASE_URL = "{{BASE_URL}}/api/new/crm_sync";
+const BASE_URL = "http://localhost:8080/api/new";
 const TOTAL_REQUESTS = 200;
 const INTERVAL_MS = 300;
 
@@ -78,7 +78,7 @@ async function main() {
         const payload = generators[jobType](i);
 
         try {
-            const res = await fetch(BASE_URL, {
+            const res = await fetch(`${BASE_URL}/${jobType}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),

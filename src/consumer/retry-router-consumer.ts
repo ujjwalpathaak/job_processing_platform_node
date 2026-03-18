@@ -22,7 +22,7 @@ export class RetryRouterConsumer {
       try {
         const content: JobMessage = JSON.parse(msg.content.toString());
         Logger.info(
-          `event=job.retry.ready_received consumer=${this.routerName} jobId=${content.id} category=${content.category} attempt=${(content.attempt ?? 0) + 1}`,
+          `job | retry ready received | consumer=${this.routerName} | jobId=${content.id} | category=${content.category} | attempt=${(content.attempt ?? 0) + 1}`,
         );
         const targetQueue = rabbit.getQueueByCategory(content.category);
         const published = rabbit.publish(targetQueue, JSON.stringify(content));
@@ -38,11 +38,11 @@ export class RetryRouterConsumer {
 
         await updateHistory(content.id, JobStatuses.PUBLISHED);
         Logger.info(
-          `event=job.retry.republished consumer=${this.routerName} jobId=${content.id} targetQueue=${targetQueue} category=${content.category} attempt=${(content.attempt ?? 0) + 1}`,
+          `job | retry republished | consumer=${this.routerName} | jobId=${content.id} | targetQueue=${targetQueue} | category=${content.category} | attempt=${(content.attempt ?? 0) + 1}`,
         );
         channel.ack(msg);
       } catch (error) {
-        Logger.error(`event=job.retry.republish_failed consumer=${this.routerName} error=${error}`);
+        Logger.error(`job | retry republish failed | consumer=${this.routerName} | error=${error}`);
 
         channel.nack(msg, false, false);
       }

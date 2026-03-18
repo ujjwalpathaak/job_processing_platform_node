@@ -1,12 +1,13 @@
 import { Pool, QueryResult } from "pg";
 import { config } from "../config/config";
+import { Logger } from "../services/log-service";
 
 const pool = new Pool({
   connectionString: config.database.url,
 });
 
 pool.on("error", (err: Error) => {
-  console.error("Unexpected error on idle client", err);
+  Logger.error(`db | pool idle client error | error=${err}`);
 });
 
 export const query = async (
@@ -18,10 +19,14 @@ export const query = async (
   try {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
-    if (log) console.log("Executed query", { text, duration, rows: result.rowCount });
+    if (log) {
+      Logger.info(
+        `db | query executed | durationMs=${duration} | rows=${result.rowCount ?? 0} | sql=${text}`,
+      );
+    }
     return result;
   } catch (error) {
-    console.error("Database query error", { text, error });
+    Logger.error(`db | query failed | sql=${text} | error=${error}`);
     throw error;
   }
 };

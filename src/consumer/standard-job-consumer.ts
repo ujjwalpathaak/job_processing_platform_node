@@ -24,14 +24,14 @@ export class StandardJobConsumer extends AbstractJobConsumer {
 
       try {
         Logger.info(
-          `event=consumer.message.received consumer=${this.consumerName} queue=${Queue.STANDARD} payload=${msg.content.toString()}`,
+          `job | consumer message received | consumer=${this.consumerName} | queue=${Queue.STANDARD} | payload=${msg.content.toString()}`,
         );
         const content: JobMessage = JSON.parse(msg.content.toString());
         await this.consumeInternal(content);
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `event=consumer.message.failed consumer=${this.consumerName} queue=${Queue.STANDARD} error=${error}`,
+          `job | consumer message failed | consumer=${this.consumerName} | queue=${Queue.STANDARD} | error=${error}`,
         );
         channel.nack(msg, false, false);
       }

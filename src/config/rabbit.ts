@@ -29,10 +29,10 @@ export class Rabbit {
   }
 
   private async initialize(): Promise<void> {
-    Logger.info("event=rabbit.connection.initializing url=amqp://localhost");
+    Logger.info("app | rabbit connection | initializing | url=amqp://localhost");
     this.connection = await client.connect("amqp://localhost");
     this.channel = await this.connection.createChannel();
-    Logger.info("event=rabbit.channel.created");
+    Logger.info("app | rabbit channel | created");
 
     for (const queue of this.queues) {
       const retryDelay = RETRY_QUEUE_DELAYS.find(({ queue: retryQueue }) => retryQueue === queue);
@@ -47,27 +47,27 @@ export class Rabbit {
           },
         });
         Logger.info(
-          `event=rabbit.queue.asserted queue=${queue} durable=true ttlMs=${retryDelay.seconds * 1000} deadLetterQueue=${Queue.RETRY_READY}`,
+          `app | rabbit queue asserted | queue=${queue} | durable=true | ttlMs=${retryDelay.seconds * 1000} | deadLetterQueue=${Queue.RETRY_READY}`,
         );
         continue;
       }
 
       await this.channel.assertQueue(queue, { durable: true });
-      Logger.info(`event=rabbit.queue.asserted queue=${queue} durable=true`);
+      Logger.info(`app | rabbit queue asserted | queue=${queue} | durable=true`);
     }
 
-    Logger.info("event=rabbit.connection.ready");
+    Logger.info("app | rabbit connection | ready");
   }
 
   public publish(queue: Queue, message: string): boolean {
     try {
       const published = this.channel.sendToQueue(queue, Buffer.from(message), { persistent: true });
       if (!published) {
-        Logger.error(`event=rabbit.publish.backpressure queue=${queue}`);
+        Logger.error(`app | rabbit publish | backpressure | queue=${queue}`);
       }
       return published;
     } catch (error) {
-      Logger.error(`event=rabbit.publish.exception queue=${queue} error=${error}`);
+      Logger.error(`app | rabbit publish | exception | queue=${queue} | error=${error}`);
       return false;
     }
   }
