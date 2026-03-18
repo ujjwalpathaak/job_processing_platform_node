@@ -3,6 +3,12 @@ import { Queue, RETRY_QUEUE_DELAYS } from "../enums/queue-enums";
 import { JobCategories } from "../enums/job-enums";
 import { Logger } from "../services/log-service";
 
+const QUEUE_BY_CATEGORY = {
+  [JobCategories.STANDARD]: Queue.STANDARD,
+  [JobCategories.CRITICAL]: Queue.CRITICAL,
+  [JobCategories.EXTERNAL]: Queue.EXTERNAL,
+};
+
 export class Rabbit {
   private static instance: Rabbit | null = null;
 
@@ -67,14 +73,7 @@ export class Rabbit {
   }
 
   public getQueueByCategory(category: JobCategories): Queue {
-    switch (category) {
-      case JobCategories.STANDARD:
-        return Queue.STANDARD;
-      case JobCategories.CRITICAL:
-        return Queue.CRITICAL;
-      case JobCategories.EXTERNAL:
-        return Queue.EXTERNAL;
-    }
+    return QUEUE_BY_CATEGORY[category];
   }
 
   public getChannel(): Channel {

@@ -23,7 +23,7 @@ export const config = {
   gemini: {
     apiKey: process.env.GOOGLE_API_KEY,
     baseUrl: process.env.GOOGLE_API_BASE_URL,
-    chatModel: process.env.GEMINI_CHAT_MODEL || "gemini-1.5-flash",
-    embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || "text-embedding-004",
+    chatModel: process.env.GEMINI_CHAT_MODEL,
+    embeddingModel: process.env.GEMINI_EMBEDDING_MODEL,
   },
 };

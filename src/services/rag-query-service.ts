@@ -57,11 +57,15 @@ const getChatModel = (temperature: number): ChatGoogleGenerativeAI => {
     throw new Error("Google API key is not configured.");
   }
 
+  if (!config.gemini.chatModel) {
+    throw new Error("Gemini model is not configured.");
+  }
+
   return new ChatGoogleGenerativeAI({
     apiKey: config.gemini.apiKey,
     model: config.gemini.chatModel,
     temperature,
-    baseUrl: config.gemini.baseUrl,
+    ...(config.gemini.baseUrl && { baseUrl: config.gemini.baseUrl }),
   });
 };
 
@@ -100,7 +104,7 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
 
 const synthesizeWithLLM = async (queryText: string, chunks: RetrievedChunk[]): Promise<string> => {
   if (chunks.length === 0) {
-    throw new Error("No relevant chunk found for this query in the current retention window.");
+    return "No relevant information found in the logs for this query.";
   }
 
   const context = chunks
