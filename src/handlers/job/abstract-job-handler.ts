@@ -20,7 +20,7 @@ export abstract class AbstractJobHandler implements JobHandler {
       await this.afterExecute(data);
     } catch (error) {
       Logger.handlerError(
-        `handler | execute failed | error=${(error as Error).message}`,
+        `Handler execution failed during process step | error=${(error as Error).message}`,
         undefined,
         this.identify(),
       );

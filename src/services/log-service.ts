@@ -51,8 +51,9 @@ export class Logger {
     jobId?: string,
     handler?: string,
     completion?: boolean,
+    rag?: boolean,
   ): void {
-    void this.forwardToRag(message, level, fromHandler, jobId, handler, completion);
+    rag && void this.forwardToRag(message, level, fromHandler, jobId, handler, completion);
 
     const list = handlers.get(level);
     if (!list || list.length === 0) return;
@@ -69,7 +70,7 @@ export class Logger {
     handler?: string,
     completion?: boolean,
   ): void {
-    this.handle(message, Log.Level.INFO, true, jobId, handler, completion);
+    this.handle(message, Log.Level.INFO, true, jobId, handler, completion, true);
   }
 
   static handlerError(
@@ -78,14 +79,26 @@ export class Logger {
     handler?: string,
     completion?: boolean,
   ): void {
-    this.handle(message, Log.Level.ERROR, true, jobId, handler, completion);
+    this.handle(message, Log.Level.ERROR, true, jobId, handler, completion, true);
   }
 
-  static info(message: string, jobId?: string, handler?: string, completion?: boolean): void {
-    this.handle(message, Log.Level.INFO, false, jobId, handler, completion);
+  static info(
+    message: string,
+    jobId?: string,
+    handler?: string,
+    completion?: boolean,
+    rag?: boolean,
+  ): void {
+    this.handle(message, Log.Level.INFO, false, jobId, handler, completion, rag);
   }
 
-  static error(message: string, jobId?: string, handler?: string, completion?: boolean): void {
-    this.handle(message, Log.Level.ERROR, false, jobId, handler, completion);
+  static error(
+    message: string,
+    jobId?: string,
+    handler?: string,
+    completion?: boolean,
+    rag?: boolean,
+  ): void {
+    this.handle(message, Log.Level.ERROR, false, jobId, handler, completion, rag);
   }
 }

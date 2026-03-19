@@ -28,7 +28,7 @@ export class RefundJobHandler extends AbstractJobHandler {
     }
 
     Logger.handlerInfo(
-      `handler | execute success | action=refund_completed`,
+      "Refund handler completed successfully | action=refund_completed",
       undefined,
       this.identify(),
     );

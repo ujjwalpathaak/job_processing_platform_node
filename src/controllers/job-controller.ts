@@ -99,23 +99,23 @@ const parseJobQueryOptions = (
 export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const handler: string = req.params.handler;
   const jobData: jobData = req.body || {};
-  Logger.info("api create received", undefined, handler || undefined);
+  Logger.info("Create-job API request received", undefined, handler || undefined);
   if (!handler) {
-    Logger.error("api create validation failed | reason=missing_handler");
+    Logger.error("Create-job API validation failed: missing handler parameter");
     return res.status(400).json(ApiResponse.failure("Handler parameter is required"));
   }
 
   const isValid: boolean = isValidJobHandlerType(handler);
   if (!isValid) {
-    Logger.error("api create validation failed | reason=invalid_handler", undefined, handler);
+    Logger.error("Create-job API validation failed: invalid handler", undefined, handler);
     return res.status(400).json(ApiResponse.failure(`Invalid job handler type: ${handler}`));
   }
   try {
     const jobId = await createAndPublishJob(handler as JobHandlerTypes, jobData);
-    Logger.info("api create succeeded", jobId, handler);
+    Logger.info("Create-job API request completed successfully", jobId, handler, undefined, true);
     return res.status(201).json(ApiResponse.success({ jobId }, "Job created successfully"));
   } catch (error) {
-    Logger.error(`api create failed | error=${error}`, undefined, handler);
+    Logger.error(`Create-job API request failed | error=${error}`, undefined, handler);
     return res.status(500).json(ApiResponse.failure("Failed to create job"));
   }
 };
@@ -123,7 +123,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
 export const getJobs = async (req: Request, res: Response): Promise<Response> => {
   const { options, page, limit, error } = parseJobQueryOptions(req);
   if (error) {
-    Logger.error(`api list validation failed | reason=${error}`);
+    Logger.error(`List-jobs API validation failed | reason=${error}`);
     return res.status(400).json(ApiResponse.failure(error));
   }
 
@@ -136,7 +136,7 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
     const jobs = await getAllJobs(options);
     return res.status(200).json(ApiResponse.success(jobs, "Jobs fetched successfully"));
   } catch (error) {
-    Logger.error(`api list failed | error=${error}`);
+    Logger.error(`List-jobs API request failed | error=${error}`);
     return res.status(500).json(ApiResponse.failure("Failed to fetch jobs"));
   }
 };
@@ -145,20 +145,20 @@ export const getJobDetails = async (req: Request, res: Response): Promise<Respon
   const id = String(req.params.id || "").trim();
 
   if (!id) {
-    Logger.error("api detail validation failed | reason=missing_id");
+    Logger.error("Get-job-detail API validation failed: missing job id");
     return res.status(400).json(ApiResponse.failure("Job id is required"));
   }
 
   try {
     const job = await getJobById(id);
     if (!job) {
-      Logger.error("api detail not found", id);
+      Logger.error("Get-job-detail API could not find job", id);
       return res.status(404).json(ApiResponse.failure("Job not found"));
     }
 
     return res.status(200).json(ApiResponse.success(job, "Job fetched successfully"));
   } catch (error) {
-    Logger.error(`api detail failed | error=${error}`, id);
+    Logger.error(`Get-job-detail API request failed | error=${error}`, id);
     return res.status(500).json(ApiResponse.failure("Failed to fetch job"));
   }
 };
@@ -167,19 +167,19 @@ export const getJobsUpdates = async (req: Request, res: Response): Promise<Respo
   const since = String(req.query.since || "").trim();
 
   if (!since) {
-    Logger.error("api updates validation failed | reason=missing_since");
+    Logger.error("Updated-jobs API validation failed: missing 'since' query param");
     return res.status(400).json(ApiResponse.failure("Query param 'since' is required"));
   }
 
   const sinceDate = new Date(since);
   if (Number.isNaN(sinceDate.getTime())) {
-    Logger.error(`api updates validation failed | reason=invalid_since | since=${since}`);
+    Logger.error(`Updated-jobs API validation failed: invalid 'since' timestamp | since=${since}`);
     return res.status(400).json(ApiResponse.failure("Invalid 'since' timestamp"));
   }
 
   const { options, page, limit, error } = parseJobQueryOptions(req);
   if (error) {
-    Logger.error(`api updates validation failed | reason=${error}`);
+    Logger.error(`Updated-jobs API validation failed | reason=${error}`);
     return res.status(400).json(ApiResponse.failure(error));
   }
 
@@ -194,7 +194,7 @@ export const getJobsUpdates = async (req: Request, res: Response): Promise<Respo
     const jobs = await getUpdatedJobs(sinceDate, options);
     return res.status(200).json(ApiResponse.success(jobs, "Updated jobs fetched successfully"));
   } catch (error) {
-    Logger.error(`api updates failed | since=${since} | error=${error}`);
+    Logger.error(`Updated-jobs API request failed | since=${since} | error=${error}`);
     return res.status(500).json(ApiResponse.failure("Failed to fetch updated jobs"));
   }
 };

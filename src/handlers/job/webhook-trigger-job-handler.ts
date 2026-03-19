@@ -30,7 +30,7 @@ export class WebhookTriggerJobHandler extends AbstractJobHandler {
     }
 
     Logger.handlerInfo(
-      `handler | execute success | action=webhook_delivered`,
+      "Webhook handler completed successfully | action=webhook_delivered",
       undefined,
       this.identify(),
     );

@@ -26,7 +26,7 @@ export class ReportGenerationJobHandler extends AbstractJobHandler {
   protected async execute(data: jobData): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 3000));
     Logger.handlerInfo(
-      `handler | execute success | reportJobId=${data.id}`,
+      `Report-generation handler completed successfully | reportJobId=${data.id}`,
       undefined,
       this.identify(),
     );

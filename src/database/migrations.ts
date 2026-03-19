@@ -60,9 +60,9 @@ export const initializeDatabase = async () => {
       WITH (lists = 100);
     `);
 
-    Logger.info("db | migrations | initialized");
+    Logger.info("Database schema migrations initialized successfully");
   } catch (error) {
-    Logger.error(`db | migrations | failed | error=${error}`);
+    Logger.error(`Database schema migration initialization failed | error=${error}`);
     throw error;
   }
 };

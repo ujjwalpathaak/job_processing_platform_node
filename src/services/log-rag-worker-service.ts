@@ -111,5 +111,5 @@ export const finalizeJobLogsForRag = async (
     await releaseJobLock(jobId, lockToken);
   }
 
-  Logger.info("rag | job finalized", jobId, fallbackHandler);
+  Logger.info("RAG finalization completed for buffered job logs", jobId, fallbackHandler);
 };

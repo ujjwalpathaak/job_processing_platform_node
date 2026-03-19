@@ -29,10 +29,10 @@ export class Rabbit {
   }
 
   private async initialize(): Promise<void> {
-    Logger.info("app | rabbit connection | initializing | url=amqp://localhost");
+    Logger.info("RabbitMQ connection initialization started | url=amqp://localhost");
     this.connection = await client.connect("amqp://localhost");
     this.channel = await this.connection.createChannel();
-    Logger.info("app | rabbit channel | created");
+    Logger.info("RabbitMQ channel created successfully");
 
     for (const queue of this.queues) {
       const retryDelay = RETRY_QUEUE_DELAYS.find(({ queue: retryQueue }) => retryQueue === queue);
@@ -47,27 +47,27 @@ export class Rabbit {
           },
         });
         Logger.info(
-          `app | rabbit queue asserted | queue=${queue} | durable=true | ttlMs=${retryDelay.seconds * 1000} | deadLetterQueue=${Queue.RETRY_READY}`,
+          `RabbitMQ queue asserted | queue=${queue} | durable=true | ttlMs=${retryDelay.seconds * 1000} | deadLetterQueue=${Queue.RETRY_READY}`,
         );
         continue;
       }
 
       await this.channel.assertQueue(queue, { durable: true });
-      Logger.info(`app | rabbit queue asserted | queue=${queue} | durable=true`);
+      Logger.info(`RabbitMQ queue asserted | queue=${queue} | durable=true`);
     }
 
-    Logger.info("app | rabbit connection | ready");
+    Logger.info("RabbitMQ connection is ready");
   }
 
   public publish(queue: Queue, message: string): boolean {
     try {
       const published = this.channel.sendToQueue(queue, Buffer.from(message), { persistent: true });
       if (!published) {
-        Logger.error(`app | rabbit publish | backpressure | queue=${queue}`);
+        Logger.error(`RabbitMQ publish backpressure encountered | queue=${queue}`);
       }
       return published;
     } catch (error) {
-      Logger.error(`app | rabbit publish | exception | queue=${queue} | error=${error}`);
+      Logger.error(`RabbitMQ publish failed with exception | queue=${queue} | error=${error}`);
       return false;
     }
   }
