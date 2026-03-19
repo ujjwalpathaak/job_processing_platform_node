@@ -27,11 +27,12 @@ const resolveCategoryFromHandler = (handler: string): string => {
 const buildChunkText = (logs: LogIngestionPayload[]): string => {
   const sequence = logs
     .map(
-      (log) => `[${log.log_source}${log.log_level === Log.Level.ERROR && "/ERROR"}] ${log.message}`,
+      (log) =>
+        `[${log.log_source}${log.log_level === Log.Level.ERROR ? "/ERROR" : ""}] ${log.message}`,
     )
     .join("\n");
 
-  return `${sequence}`;
+  return `job_id: ${logs[0].job_id}\nhandler: ${logs[0].handler}\ntimestamp: ${logs[0].timestamp}\n${sequence}`;
 };
 
 const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise<void> => {

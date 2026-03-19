@@ -8,16 +8,8 @@ const toFilter = (filters: RAGFilters): Record<string, string> => {
     normalized.handler = filters.handler;
   }
 
-  if (filters.log_level) {
-    normalized.log_level = filters.log_level.toUpperCase();
-  }
-
-  if (filters.log_source) {
-    normalized.log_source = filters.log_source.toUpperCase();
-  }
-
-  if (filters.log_stream) {
-    normalized.log_stream = filters.log_stream.toUpperCase();
+  if (filters.job_id) {
+    normalized.job_id = filters.job_id;
   }
 
   return normalized;

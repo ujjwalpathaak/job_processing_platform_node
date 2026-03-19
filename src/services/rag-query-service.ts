@@ -5,9 +5,7 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getPgVectorStore } from "./langchain-pgvector-service";
-
-const KNOWN_SOURCES = ["HANDLER", "SYSTEM"];
-const KNOWN_STREAMS = ["APPLICATION", "ERROR", "HANDLER_APPLICATION", "HANDLER_ERROR", "MIXED"];
+import { JobHandlerTypes } from "../enums/job-enums";
 
 const toRetrieverFilter = (filters: RAGFilters): Record<string, string> | undefined => {
   const normalized: Record<string, string> = {};
@@ -16,16 +14,8 @@ const toRetrieverFilter = (filters: RAGFilters): Record<string, string> | undefi
     normalized.handler = filters.handler;
   }
 
-  if (filters.log_level) {
-    normalized.log_level = filters.log_level.toUpperCase();
-  }
-
-  if (filters.log_source) {
-    normalized.log_source = filters.log_source.toUpperCase();
-  }
-
-  if (filters.log_stream) {
-    normalized.log_stream = filters.log_stream.toUpperCase();
+  if (filters.job_id) {
+    normalized.job_id = filters.job_id;
   }
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;
@@ -73,7 +63,19 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
   const filterPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      "Extract filters for log retrieval. Return only JSON with optional keys: handler, log_level, log_source, log_stream. Use uppercase values for log_level, log_source, log_stream.",
+      `Extract filters for log retrieval.
+
+Output format:
+{{
+  "job_id": "<UUID, optional>",
+  "handler": "<UPPERCASE value from: ${Object.keys(JobHandlerTypes).join(", ")}, optional>"
+}}
+
+Rules:
+- Return ONLY valid JSON.
+- Do NOT include extra keys.
+- Do NOT include null values; omit missing fields.
+- Do NOT include any explanation or text outside the JSON.`,
     ],
     ["human", "{queryText}"],
   ]);
@@ -85,18 +87,14 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
 
   try {
     const parsed = await new JsonOutputParser<RAGFilters>().parse(raw);
-    return {
-      handler: parsed.handler,
-      log_level: parsed.log_level?.toUpperCase(),
-      log_source:
-        parsed.log_source && KNOWN_SOURCES.includes(parsed.log_source.toUpperCase())
-          ? parsed.log_source.toUpperCase()
-          : undefined,
-      log_stream:
-        parsed.log_stream && KNOWN_STREAMS.includes(parsed.log_stream.toUpperCase())
-          ? parsed.log_stream.toUpperCase()
-          : undefined,
-    };
+    const obj: RAGFilters = {};
+    if (parsed.job_id) {
+      obj.job_id = parsed.job_id;
+    }
+    if (parsed.handler) {
+      obj.handler = parsed.handler.toUpperCase();
+    }
+    return obj;
   } catch (_error) {
     throw new Error("Failed to parse LLM response");
   }
@@ -118,9 +116,31 @@ const synthesizeWithLLM = async (queryText: string, chunks: RetrievedChunk[]): P
   const synthesisPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      "You are a log analysis assistant. Summarize root cause from retrieved chunks and keep answer concise and factual.",
+      `You are a log analysis assistant.
+      Your task is to answer the user's query using the provided log chunks.
+
+      Guidelines:
+      - Base your answer ONLY on the retrieved logs.
+      - Assume the user is a developer or operator familiar with log analysis, but do NOT assume they have seen these specific logs before.
+      - Do NOT assume missing information.
+      - Show all timestamps in Indian Standard Time (IST).
+      - If the logs do not contain enough information, say "Insufficient data".
+      - Be concise, factual, and directly relevant to the query.
+      - Use chronological reasoning when helpful.
+      - Highlight relevant events (info, errors) based on the query—not just errors.
+
+      Output format:
+      - Answer: <concise response>
+      - Evidence: <1–3 short bullet points from logs>`,
     ],
-    ["human", "User query:\n{queryText}\n\nRetrieved chunks:\n{context}"],
+    [
+      "human",
+      `User query:
+      {queryText}
+
+      Retrieved logs:
+      {context}`,
+    ],
   ]);
 
   const answer = await synthesisPrompt
