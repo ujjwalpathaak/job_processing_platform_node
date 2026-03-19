@@ -49,9 +49,13 @@ export const getAllLogs = async (jobId: string): Promise<LogIngestionPayload[]> 
     .sort((a, b) => a.timestamp - b.timestamp);
 };
 
-export const trimOldestLog = async (jobId: string): Promise<void> => {
+export const trimOldestLog = async (jobId: string, count: number = 1): Promise<void> => {
+  if (count <= 0) {
+    return;
+  }
+
   const redis = getRedis();
-  await redis.zremrangebyrank(getJobKey(jobId), 0, 0);
+  await redis.zremrangebyrank(getJobKey(jobId), 0, count - 1);
 };
 
 export const clearLogs = async (jobId: string): Promise<void> => {

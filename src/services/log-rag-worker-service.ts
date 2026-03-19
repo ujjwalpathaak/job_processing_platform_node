@@ -78,7 +78,8 @@ export const processLogForRag = async (log: LogIngestionPayload): Promise<void> 
     }
 
     await persistChunk(log.job_id, logs);
-    await trimOldestLog(log.job_id);
+    const trimCount = Math.max(config.redis.windowSize - 1, 1);
+    await trimOldestLog(log.job_id, trimCount);
   } finally {
     await releaseJobLock(log.job_id, lockToken);
   }

@@ -99,7 +99,6 @@ const parseJobQueryOptions = (
 export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const handler: string = req.params.handler;
   const jobData: jobData = req.body || {};
-  Logger.info("Create-job API request received", undefined, handler || undefined);
   if (!handler) {
     Logger.error("Create-job API validation failed: missing handler parameter");
     return res.status(400).json(ApiResponse.failure("Handler parameter is required"));
