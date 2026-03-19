@@ -1,5 +1,9 @@
 import { Rabbit } from "../config/rabbit";
-import { LogIngestionPayload, LogRagEventPayload } from "../dto/rag-dtos";
+import {
+  CompleteLogIngestionPayload,
+  LogIngestionPayload,
+  LogRagEventPayload,
+} from "../dto/rag-dtos";
 import { Queue } from "../enums/queue-enums";
 
 export const publishLogForRag = async (payload: LogIngestionPayload): Promise<boolean> => {
@@ -13,16 +17,12 @@ export const publishLogForRag = async (payload: LogIngestionPayload): Promise<bo
 };
 
 export const publishJobCompletedForRag = async (
-  jobId: string,
-  handler?: string,
+  payload: CompleteLogIngestionPayload,
 ): Promise<boolean> => {
   const rabbit = await Rabbit.getInstance();
   const message: LogRagEventPayload = {
     type: "JOB_COMPLETED",
-    payload: {
-      job_id: jobId,
-      handler,
-    },
+    payload,
   };
 
   return rabbit.publish(Queue.LOG_RAG, JSON.stringify(message));
