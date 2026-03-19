@@ -14,15 +14,13 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
     category: job.category,
     handler: job.handler,
     data: job.data || {},
-    attempt: 0,
+    attempt: 1,
   };
 
   Logger.info(
-    `Publishing job message to primary queue | queue=${queue} | attempt=${payload.attempt}`,
+    `Publishing job message to queue | queue=${queue} | attempt=${payload.attempt}`,
     payload.id,
     payload.handler,
-    undefined,
-    true,
   );
   const published = rabbit.publish(queue, JSON.stringify(payload));
   if (!published) {
@@ -36,13 +34,7 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
     return false;
   }
 
-  Logger.info(
-    `Primary queue publish succeeded | queue=${queue}`,
-    payload.id,
-    payload.handler,
-    undefined,
-    true,
-  );
+  Logger.info(`Queue publish succeeded`, payload.id, payload.handler, undefined, true);
   return true;
 };
 
@@ -53,7 +45,7 @@ export const pushMessageToRetryQueue = async (
   const rabbit = await Rabbit.getInstance();
   const retryQueue = resolveRetryQueue(backoffValue);
   Logger.info(
-    `Publishing job message to retry queue | queue=${retryQueue} | attempt=${message.attempt ?? 0} | backoff=${backoffValue ?? "default"}`,
+    `Publishing job message to retry | queue=${retryQueue} | attempt=${message.attempt ?? 0} | backoff=${backoffValue ?? "default"}`,
     message.id,
     message.handler,
     undefined,
@@ -61,22 +53,10 @@ export const pushMessageToRetryQueue = async (
   );
   const published = rabbit.publish(retryQueue, JSON.stringify(message));
   if (!published) {
-    Logger.error(
-      `Retry queue publish failed | queue=${retryQueue}`,
-      message.id,
-      message.handler,
-      undefined,
-      true,
-    );
+    Logger.error(`Retry queue publish failed`, message.id, message.handler, undefined, true);
     return false;
   }
 
-  Logger.info(
-    `Retry queue publish succeeded | queue=${retryQueue}`,
-    message.id,
-    message.handler,
-    undefined,
-    true,
-  );
+  Logger.info(`Retry queue publish succeeded`, message.id, message.handler, undefined, true);
   return true;
 };

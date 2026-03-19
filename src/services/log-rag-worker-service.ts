@@ -24,16 +24,14 @@ const resolveCategoryFromHandler = (handler: string): string => {
   return getJobHandlerCategoryFromType(handler as JobHandlerTypes);
 };
 
-const buildChunkText = (handler: string, logs: LogIngestionPayload[]): string => {
-  const category = resolveCategoryFromHandler(handler);
-  const level = logs.some((log) => log.log_level === Log.Level.ERROR)
-    ? Log.Level.ERROR
-    : logs[logs.length - 1].log_level;
+const buildChunkText = (logs: LogIngestionPayload[]): string => {
   const sequence = logs
-    .map((log) => `- [${log.log_source}/${log.log_level}] ${log.message}`)
+    .map(
+      (log) => `[${log.log_source}${log.log_level === Log.Level.ERROR && "/ERROR"}] ${log.message}`,
+    )
     .join("\n");
 
-  return `Handler: ${handler}\nCategory: ${category}\nLevel: ${level}\n\nSequence:\n${sequence}`;
+  return `${sequence}`;
 };
 
 const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise<void> => {
@@ -41,26 +39,13 @@ const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise
     return;
   }
 
-  const latestLog = logs[logs.length - 1];
-  const chunkText = buildChunkText(latestLog.handler, logs);
+  const log = logs[0];
+  const chunkText = buildChunkText(logs);
   const embedding = await embedText(chunkText);
-  const effectiveLevel = logs.some((log) => log.log_level === Log.Level.ERROR)
-    ? Log.Level.ERROR
-    : latestLog.log_level;
-  const sourceSet = new Set(logs.map((log) => log.log_source));
-  const effectiveSource = sourceSet.size === 1 ? logs[0].log_source : "MIXED";
-  const category = resolveCategoryFromHandler(latestLog.handler);
+  const containsError = logs.some((log) => log.log_level === Log.Level.ERROR) ? true : false;
+  const category = resolveCategoryFromHandler(log.handler);
 
-  await insertJobChunk(
-    jobId,
-    latestLog.handler,
-    category,
-    effectiveLevel,
-    effectiveSource,
-    "effectiveStream",
-    chunkText,
-    embedding,
-  );
+  await insertJobChunk(jobId, log.handler, category, containsError, chunkText, embedding);
 };
 
 export const processLogForRag = async (log: LogIngestionPayload): Promise<void> => {

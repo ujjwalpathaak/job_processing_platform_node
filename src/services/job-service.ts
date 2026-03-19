@@ -33,7 +33,7 @@ export const createAndPublishJob = async (
     throw new Error("Failed to create job in the database");
   }
   Logger.info(
-    "Job persisted; publishing message to queue",
+    "New job created; publishing message to queue",
     job.id,
     jobHandlerType,
     undefined,
@@ -48,7 +48,7 @@ export const createAndPublishJob = async (
   }
 
   await updateHistory(job.id, JobStatuses.PUBLISHED);
-  Logger.info("Job creation flow completed successfully", job.id, jobHandlerType, undefined, true);
+  Logger.info("Job creation completed successfully", job.id, jobHandlerType, undefined, true);
 
   return job.id;
 };

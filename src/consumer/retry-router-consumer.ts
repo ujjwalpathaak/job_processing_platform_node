@@ -24,7 +24,7 @@ export class RetryRouterConsumer {
         const parsedContent: JobMessage = JSON.parse(msg.content.toString());
         content = parsedContent;
         Logger.info(
-          `Retry-ready message received; preparing republish | attempt=${(parsedContent.attempt ?? 0) + 1}`,
+          `Message received | consumer=${this.routerName}`,
           parsedContent.id,
           parsedContent.handler,
           undefined,
@@ -42,18 +42,18 @@ export class RetryRouterConsumer {
           throw new Error(`Failed to publish retried job ${parsedContent.id} to ${targetQueue}`);
         }
 
-        await updateHistory(parsedContent.id, JobStatuses.PUBLISHED);
         Logger.info(
-          `Retry-ready message republished to target queue | targetQueue=${targetQueue} | attempt=${(parsedContent.attempt ?? 0) + 1}`,
+          `Message republished | targetQueue=${targetQueue}`,
           parsedContent.id,
           parsedContent.handler,
           undefined,
           true,
         );
+        await updateHistory(parsedContent.id, JobStatuses.PUBLISHED);
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `Retry-ready message republish failed | consumer=${this.routerName} | error=${error}`,
+          `Queue message processing failed | consumer=${this.routerName} | error=${error}`,
           content?.id,
           content?.handler,
           undefined,

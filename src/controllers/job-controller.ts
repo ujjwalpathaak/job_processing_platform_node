@@ -111,7 +111,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
   }
   try {
     const jobId = await createAndPublishJob(handler as JobHandlerTypes, jobData);
-    Logger.info("Create-job API request completed successfully", jobId, handler, undefined, true);
+    Logger.info("Create-job API request completed successfully", jobId, handler);
     return res.status(201).json(ApiResponse.success({ jobId }, "Job created successfully"));
   } catch (error) {
     Logger.error(`Create-job API request failed | error=${error}`, undefined, handler);

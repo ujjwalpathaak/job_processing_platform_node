@@ -27,7 +27,7 @@ export class CriticalJobConsumer extends AbstractJobConsumer {
         const parsedContent: JobMessage = JSON.parse(msg.content.toString());
         content = parsedContent;
         Logger.info(
-          `Queue message accepted; delegating to consumer pipeline | queue=${Queue.CRITICAL}`,
+          `Message received | consumer=${this.consumerName}`,
           parsedContent.id,
           parsedContent.handler,
           undefined,
@@ -37,7 +37,7 @@ export class CriticalJobConsumer extends AbstractJobConsumer {
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `Queue message processing failed | consumer=${this.consumerName} | queue=${Queue.CRITICAL} | error=${error}`,
+          `Queue message processing failed | consumer=${this.consumerName} | error=${error}`,
           content?.id,
           content?.handler,
           undefined,
