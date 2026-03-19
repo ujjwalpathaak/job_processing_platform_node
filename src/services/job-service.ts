@@ -19,36 +19,30 @@ export const createAndPublishJob = async (
   jobHandlerType: JobHandlerTypes,
   jobData: jobData,
 ): Promise<string> => {
-  Logger.info(`create requested | handler=${jobHandlerType}`);
+  Logger.info("create requested", undefined, jobHandlerType);
   const jobCategory: JobCategories = getJobHandlerCategoryFromType(jobHandlerType);
   if (!jobCategory) {
-    Logger.error(`create invalid handler | handler=${jobHandlerType}`);
+    Logger.error("create invalid handler", undefined, jobHandlerType);
     throw new Error(`No category found for job handler type: ${jobHandlerType}`);
   }
 
   const job: Job = new Job(jobHandlerType, jobCategory, jobData);
   const createdJob: Job = await create(job);
   if (!createdJob.id) {
-    Logger.error(`create persist failed | handler=${jobHandlerType} | category=${jobCategory}`);
+    Logger.error("create persist failed", undefined, jobHandlerType);
     throw new Error("Failed to create job in the database");
   }
-  Logger.info(
-    `create persisted | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
-  );
+  Logger.info("create persisted", job.id, jobHandlerType);
 
   const publishSucceeded = await pushJobToQueue(job);
   if (!publishSucceeded) {
-    Logger.error(
-      `create publish failed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
-    );
+    Logger.error("create publish failed", job.id, jobHandlerType);
     await updateHistory(job.id, JobStatuses.ERROR, "Failed to publish job to queue");
     throw new Error("Failed to publish job to queue");
   }
 
   await updateHistory(job.id, JobStatuses.PUBLISHED);
-  Logger.info(
-    `create completed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
-  );
+  Logger.info("create completed", job.id, jobHandlerType);
 
   return job.id;
 };

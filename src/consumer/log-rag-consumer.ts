@@ -11,7 +11,7 @@ export class LogRagConsumer {
     const rabbit = await Rabbit.getInstance();
     const channel = rabbit.getChannel();
 
-    channel.prefetch(20);
+    channel.prefetch(1);
 
     await channel.consume(Queue.LOG_RAG, async (msg) => {
       if (!msg) return;

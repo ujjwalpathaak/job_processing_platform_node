@@ -99,7 +99,7 @@ const parseJobQueryOptions = (
 export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const handler: string = req.params.handler;
   const jobData: jobData = req.body || {};
-  Logger.info(`api create received | handler=${handler || "missing"}`);
+  Logger.info("api create received", undefined, handler || undefined);
   if (!handler) {
     Logger.error("api create validation failed | reason=missing_handler");
     return res.status(400).json(ApiResponse.failure("Handler parameter is required"));
@@ -107,15 +107,15 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
 
   const isValid: boolean = isValidJobHandlerType(handler);
   if (!isValid) {
-    Logger.error(`api create validation failed | reason=invalid_handler | handler=${handler}`);
+    Logger.error("api create validation failed | reason=invalid_handler", undefined, handler);
     return res.status(400).json(ApiResponse.failure(`Invalid job handler type: ${handler}`));
   }
   try {
     const jobId = await createAndPublishJob(handler as JobHandlerTypes, jobData);
-    Logger.info(`api create succeeded | handler=${handler} | jobId=${jobId}`);
+    Logger.info("api create succeeded", jobId, handler);
     return res.status(201).json(ApiResponse.success({ jobId }, "Job created successfully"));
   } catch (error) {
-    Logger.error(`api create failed | handler=${handler} | error=${error}`);
+    Logger.error(`api create failed | error=${error}`, undefined, handler);
     return res.status(500).json(ApiResponse.failure("Failed to create job"));
   }
 };
@@ -152,13 +152,13 @@ export const getJobDetails = async (req: Request, res: Response): Promise<Respon
   try {
     const job = await getJobById(id);
     if (!job) {
-      Logger.error(`api detail not found | jobId=${id}`);
+      Logger.error("api detail not found", id);
       return res.status(404).json(ApiResponse.failure("Job not found"));
     }
 
     return res.status(200).json(ApiResponse.success(job, "Job fetched successfully"));
   } catch (error) {
-    Logger.error(`api detail failed | jobId=${id} | error=${error}`);
+    Logger.error(`api detail failed | error=${error}`, id);
     return res.status(500).json(ApiResponse.failure("Failed to fetch job"));
   }
 };

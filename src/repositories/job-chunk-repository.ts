@@ -45,6 +45,7 @@ const toRetrievedChunk = (
 export const insertJobChunk = async (
   jobId: string,
   handler: string,
+  category: string,
   logLevel: string,
   logSource: string,
   logStream: string,
@@ -60,6 +61,7 @@ export const insertJobChunk = async (
         metadata: {
           job_id: jobId,
           handler,
+          category,
           log_level: logLevel.toUpperCase(),
           log_source: logSource.toUpperCase(),
           log_stream: logStream.toUpperCase(),

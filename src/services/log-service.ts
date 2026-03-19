@@ -57,7 +57,7 @@ export class Logger {
     const list = handlers.get(level);
     if (!list || list.length === 0) return;
 
-    const logMessage = new LogMessage(message, level);
+    const logMessage = new LogMessage(message, level, jobId, handler);
     for (const handler of list) {
       handler.handle(logMessage, fromHandler);
     }

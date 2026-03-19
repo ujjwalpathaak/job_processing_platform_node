@@ -22,7 +22,9 @@ export class RetryRouterConsumer {
       try {
         const content: JobMessage = JSON.parse(msg.content.toString());
         Logger.info(
-          `retry ready received | consumer=${this.routerName} | jobId=${content.id} | category=${content.category} | attempt=${(content.attempt ?? 0) + 1}`,
+          `retry ready received | consumer=${this.routerName} | attempt=${(content.attempt ?? 0) + 1}`,
+          content.id,
+          content.handler,
         );
         const targetQueue = rabbit.getQueueByCategory(content.category);
         const published = rabbit.publish(targetQueue, JSON.stringify(content));
@@ -38,7 +40,9 @@ export class RetryRouterConsumer {
 
         await updateHistory(content.id, JobStatuses.PUBLISHED);
         Logger.info(
-          `retry republished | consumer=${this.routerName} | jobId=${content.id} | targetQueue=${targetQueue} | category=${content.category} | attempt=${(content.attempt ?? 0) + 1}`,
+          `retry republished | consumer=${this.routerName} | targetQueue=${targetQueue} | attempt=${(content.attempt ?? 0) + 1}`,
+          content.id,
+          content.handler,
         );
         channel.ack(msg);
       } catch (error) {

@@ -12,37 +12,28 @@ import {
 import { embedText } from "./embedding-service";
 import { insertJobChunk } from "../repositories/job-chunk-repository";
 import { Logger } from "./log-service";
+import * as Log from "../enums/log-enums";
+import { getJobHandlerCategoryFromType, isValidJobHandlerType } from "../managers/job-manager";
+import { JobHandlerTypes } from "../enums/job-enums";
 
-const summarizeMessage = (message: string): string => {
-  if (!message) {
-    return "No message details available";
+const resolveCategoryFromHandler = (handler: string): string => {
+  if (!isValidJobHandlerType(handler)) {
+    return "UNKNOWN";
   }
 
-  const pipeParts = message
-    .split("|")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (pipeParts.length >= 2) {
-    return pipeParts.slice(0, 3).join(" | ");
-  }
-
-  const eventMatch = message.match(/event=([^\s]+)/);
-  if (eventMatch?.[1]) {
-    return eventMatch[1].replace(/\./g, " ").replace(/_/g, " ").trim();
-  }
-
-  return message.trim();
+  return getJobHandlerCategoryFromType(handler as JobHandlerTypes);
 };
 
 const buildChunkText = (handler: string, logs: LogIngestionPayload[]): string => {
-  const level = logs.some((log) => log.log_level === "ERROR")
-    ? "ERROR"
+  const category = resolveCategoryFromHandler(handler);
+  const level = logs.some((log) => log.log_level === Log.Level.ERROR)
+    ? Log.Level.ERROR
     : logs[logs.length - 1].log_level;
   const sequence = logs
-    .map((log) => `- [${log.log_source}/${log.log_stream}] ${summarizeMessage(log.message)}`)
+    .map((log) => `- [${log.log_source}/${log.log_level}] ${log.message}`)
     .join("\n");
 
-  return `Handler: ${handler}\nLevel: ${level}\n\nSequence:\n${sequence}`;
+  return `Handler: ${handler}\nCategory: ${category}\nLevel: ${level}\n\nSequence:\n${sequence}`;
 };
 
 const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise<void> => {
@@ -53,20 +44,20 @@ const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise
   const latestLog = logs[logs.length - 1];
   const chunkText = buildChunkText(latestLog.handler, logs);
   const embedding = await embedText(chunkText);
-  const effectiveLevel = logs.some((log) => log.log_level === "ERROR")
-    ? "ERROR"
+  const effectiveLevel = logs.some((log) => log.log_level === Log.Level.ERROR)
+    ? Log.Level.ERROR
     : latestLog.log_level;
   const sourceSet = new Set(logs.map((log) => log.log_source));
-  const streamSet = new Set(logs.map((log) => log.log_stream));
   const effectiveSource = sourceSet.size === 1 ? logs[0].log_source : "MIXED";
-  const effectiveStream = streamSet.size === 1 ? logs[0].log_stream : "MIXED";
+  const category = resolveCategoryFromHandler(latestLog.handler);
 
   await insertJobChunk(
     jobId,
     latestLog.handler,
+    category,
     effectiveLevel,
     effectiveSource,
-    effectiveStream,
+    "effectiveStream",
     chunkText,
     embedding,
   );
@@ -112,7 +103,6 @@ export const finalizeJobLogsForRag = async (
       ...log,
       handler: log.handler || fallbackHandler,
       log_source: log.log_source || "SYSTEM",
-      log_stream: log.log_stream || "APPLICATION",
     }));
 
     await persistChunk(jobId, normalizedLogs);
@@ -121,5 +111,5 @@ export const finalizeJobLogsForRag = async (
     await releaseJobLock(jobId, lockToken);
   }
 
-  Logger.info(`rag | job finalized | jobId=${jobId} | handler=${fallbackHandler}`);
+  Logger.info("rag | job finalized", jobId, fallbackHandler);
 };
