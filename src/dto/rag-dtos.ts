@@ -1,15 +1,19 @@
-export type LogRagLevel = "INFO" | "ERROR" | "WARN" | "DEBUG";
+import * as Log from "../enums/log-enums";
+
 export type LogSource = "HANDLER" | "SYSTEM";
-export type LogStream = "APPLICATION" | "ERROR" | "HANDLER_APPLICATION" | "HANDLER_ERROR";
 
 export type LogIngestionPayload = {
   job_id: string;
   handler: string;
-  log_level: LogRagLevel;
+  log_level: Log.Level;
   log_source: LogSource;
-  log_stream: LogStream;
   message: string;
   timestamp: number;
+};
+
+export type CompleteLogIngestionPayload = {
+  job_id: string;
+  handler: string;
 };
 
 export type JobCompletedPayload = {
@@ -28,10 +32,8 @@ export type LogRagEventPayload =
     };
 
 export type RAGFilters = {
+  job_id?: string;
   handler?: string;
-  log_level?: string;
-  log_source?: string;
-  log_stream?: string;
 };
 
 export type RAGQueryRequest = {
@@ -43,9 +45,6 @@ export type RetrievedChunk = {
   id: number;
   job_id: string;
   handler: string;
-  log_level: string;
-  log_source: string;
-  log_stream: string;
   content: string;
   created_at: string;
   similarity: number;

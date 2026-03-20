@@ -21,17 +21,27 @@ export class StandardJobConsumer extends AbstractJobConsumer {
 
     await channel.consume(Queue.STANDARD, async (msg) => {
       if (!msg) return;
+      let content: JobMessage | undefined;
 
       try {
+        const parsedContent: JobMessage = JSON.parse(msg.content.toString());
+        content = parsedContent;
         Logger.info(
-          `consumer message received | consumer=${this.consumerName} | queue=${Queue.STANDARD} | payload=${msg.content.toString()}`,
+          `Message received | consumer=${this.consumerName}`,
+          parsedContent.id,
+          parsedContent.handler,
+          undefined,
+          true,
         );
-        const content: JobMessage = JSON.parse(msg.content.toString());
-        await this.consumeInternal(content);
+        await this.consumeInternal(parsedContent);
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `consumer message failed | consumer=${this.consumerName} | queue=${Queue.STANDARD} | error=${error}`,
+          `Queue message processing failed | consumer=${this.consumerName} | error=${error}`,
+          content?.id,
+          content?.handler,
+          undefined,
+          true,
         );
         channel.nack(msg, false, false);
       }

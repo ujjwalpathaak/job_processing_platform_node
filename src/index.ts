@@ -22,7 +22,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   }
 
   Logger.info(
-    `app | http request received | method=${req.method} | path=${req.path} | ip=${req.ip} | ts=${new Date().toISOString()}`,
+    `Incoming HTTP request | method=${req.method} | path=${req.path} | ip=${req.ip} | ts=${new Date().toISOString()}`,
   );
   next();
 });
@@ -30,22 +30,22 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 const startServer = async () => {
   try {
     Logger.init([new FileLogHandler()]);
-    Logger.info("app | bootstrap | logger initialized");
+    Logger.info("Logger handlers initialized");
 
-    Logger.info("app | bootstrap | database initializing");
+    Logger.info("Database initialization started");
     await initializeDatabase();
-    Logger.info("app | bootstrap | database initialized");
+    Logger.info("Database initialization completed");
 
-    Logger.info("app | bootstrap | consumers starting");
+    Logger.info("Queue consumers startup started");
     await startConsumers();
-    Logger.info("app | bootstrap | consumers started");
+    Logger.info("Queue consumers startup completed");
 
-    Logger.info("app | bootstrap | rabbit initializing");
+    Logger.info("RabbitMQ bootstrap started");
     await Rabbit.getInstance();
-    Logger.info("app | bootstrap | rabbit initialized");
+    Logger.info("RabbitMQ bootstrap completed");
 
     setupRoutes(app);
-    Logger.info("app | bootstrap | routes initialized");
+    Logger.info("HTTP routes initialized");
 
     app.use(notFoundHandler);
     app.use(errorHandler);
@@ -54,15 +54,15 @@ const startServer = async () => {
     process.on("SIGINT", async () => {
       if (shuttingDown) return;
       shuttingDown = true;
-      Logger.info("app | shutdown | signal=SIGINT | state=started");
+      Logger.info("Application shutdown started | signal=SIGINT");
 
       try {
         const rabbit = await Rabbit.getInstance();
         await rabbit.close();
         await closeRedis();
-        Logger.info("app | shutdown | signal=SIGINT | state=completed");
+        Logger.info("Application shutdown completed | signal=SIGINT");
       } catch (err) {
-        Logger.error(`app | shutdown | signal=SIGINT | state=failed | error=${err}`);
+        Logger.error(`Application shutdown failed | signal=SIGINT | error=${err}`);
       }
 
       process.exit(0);
@@ -70,10 +70,10 @@ const startServer = async () => {
 
     const port = config.port as number;
     app.listen(port, () => {
-      Logger.info(`app | server started | url=http://localhost:${port} | env=${config.nodeEnv}`);
+      Logger.info(`HTTP server started | url=http://localhost:${port} | env=${config.nodeEnv}`);
     });
   } catch (error) {
-    Logger.error(`app | bootstrap | state=failed | error=${error}`);
+    Logger.error(`Application bootstrap failed | error=${error}`);
     process.exit(1);
   }
 };

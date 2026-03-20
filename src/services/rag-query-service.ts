@@ -4,53 +4,9 @@ import { JsonOutputParser, StringOutputParser } from "@langchain/core/output_par
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { getPgVectorStore } from "./langchain-pgvector-service";
-
-const KNOWN_SOURCES = ["HANDLER", "SYSTEM"];
-const KNOWN_STREAMS = ["APPLICATION", "ERROR", "HANDLER_APPLICATION", "HANDLER_ERROR", "MIXED"];
-
-const toRetrieverFilter = (filters: RAGFilters): Record<string, string> | undefined => {
-  const normalized: Record<string, string> = {};
-
-  if (filters.handler) {
-    normalized.handler = filters.handler;
-  }
-
-  if (filters.log_level) {
-    normalized.log_level = filters.log_level.toUpperCase();
-  }
-
-  if (filters.log_source) {
-    normalized.log_source = filters.log_source.toUpperCase();
-  }
-
-  if (filters.log_stream) {
-    normalized.log_stream = filters.log_stream.toUpperCase();
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : undefined;
-};
-
-const toRetrievedChunk = (doc: {
-  id?: string;
-  pageContent: string;
-  metadata?: Record<string, unknown>;
-}): RetrievedChunk => {
-  const metadata = doc.metadata ?? {};
-  const parsedId = Number.parseInt(String(doc.id ?? metadata.id ?? "0"), 10);
-
-  return {
-    id: Number.isNaN(parsedId) ? 0 : parsedId,
-    job_id: String(metadata.job_id ?? ""),
-    handler: String(metadata.handler ?? "unknown"),
-    log_level: String(metadata.log_level ?? "INFO"),
-    log_source: String(metadata.log_source ?? "SYSTEM"),
-    log_stream: String(metadata.log_stream ?? "APPLICATION"),
-    content: doc.pageContent,
-    created_at: String(metadata.created_at ?? new Date().toISOString()),
-    similarity: 0,
-  };
-};
+import { JobHandlerTypes } from "../enums/job-enums";
+import { embedText } from "./embedding-service";
+import { searchJobChunksByColumnsWithEmbedding } from "../repositories/job-chunk-repository";
 
 const getChatModel = (temperature: number): ChatGoogleGenerativeAI => {
   if (!config.gemini.apiKey) {
@@ -73,7 +29,19 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
   const filterPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      "Extract filters for log retrieval. Return only JSON with optional keys: handler, log_level, log_source, log_stream. Use uppercase values for log_level, log_source, log_stream.",
+      `Extract filters for log retrieval.
+
+      Output format:
+      {{
+        "job_id": "<UUID, optional>",
+        "handler": "<LOWERCASE value from: ${Object.keys(JobHandlerTypes).join(", ")}, optional>"
+      }}
+
+      Rules:
+      - Return ONLY valid JSON.
+      - Do NOT include extra keys.
+      - Do NOT include null values; omit missing fields.
+      - Do NOT include any explanation or text outside the JSON.`,
     ],
     ["human", "{queryText}"],
   ]);
@@ -85,18 +53,14 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
 
   try {
     const parsed = await new JsonOutputParser<RAGFilters>().parse(raw);
-    return {
-      handler: parsed.handler,
-      log_level: parsed.log_level?.toUpperCase(),
-      log_source:
-        parsed.log_source && KNOWN_SOURCES.includes(parsed.log_source.toUpperCase())
-          ? parsed.log_source.toUpperCase()
-          : undefined,
-      log_stream:
-        parsed.log_stream && KNOWN_STREAMS.includes(parsed.log_stream.toUpperCase())
-          ? parsed.log_stream.toUpperCase()
-          : undefined,
-    };
+    const obj: RAGFilters = {};
+    if (parsed.job_id) {
+      obj.job_id = parsed.job_id;
+    }
+    if (parsed.handler) {
+      obj.handler = parsed.handler.toLowerCase();
+    }
+    return obj;
   } catch (_error) {
     throw new Error("Failed to parse LLM response");
   }
@@ -118,9 +82,31 @@ const synthesizeWithLLM = async (queryText: string, chunks: RetrievedChunk[]): P
   const synthesisPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      "You are a log analysis assistant. Summarize root cause from retrieved chunks and keep answer concise and factual.",
+      `You are a log analysis assistant.
+      Your task is to answer the user's query using the provided log chunks.
+
+      Guidelines:
+      - Base your answer ONLY on the retrieved logs.
+      - Assume the user is a developer or operator familiar with log analysis, but do NOT assume they have seen these specific logs before.
+      - Do NOT assume missing information.
+      - Show all timestamps in Indian Standard Time (IST).
+      - If the logs do not contain enough information, say "Insufficient data".
+      - Be concise, factual, and directly relevant to the query.
+      - Use chronological reasoning when helpful.
+      - Highlight relevant events (info, errors) based on the query—not just errors.
+
+      Output format:
+      - Answer: <concise response>
+      - Evidence: <1–3 short bullet points from logs>`,
     ],
-    ["human", "User query:\n{queryText}\n\nRetrieved chunks:\n{context}"],
+    [
+      "human",
+      `User query:
+      {queryText}
+
+      Retrieved logs:
+      {context}`,
+    ],
   ]);
 
   const answer = await synthesisPrompt
@@ -136,20 +122,8 @@ const retrieveChunksWithRetriever = async (
   filters: RAGFilters,
   topK: number,
 ): Promise<RetrievedChunk[]> => {
-  const vectorStore = await getPgVectorStore();
-  const retriever = vectorStore.asRetriever({
-    k: topK,
-    filter: toRetrieverFilter(filters),
-  });
-
-  const docs = await retriever.invoke(queryText);
-  return docs.map((doc) =>
-    toRetrievedChunk({
-      id: doc.id,
-      pageContent: doc.pageContent,
-      metadata: (doc.metadata ?? {}) as Record<string, unknown>,
-    }),
-  );
+  const embedding = await embedText(queryText);
+  return searchJobChunksByColumnsWithEmbedding(embedding, filters, topK);
 };
 
 export const runRagQuery = async (

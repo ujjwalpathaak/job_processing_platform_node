@@ -30,7 +30,9 @@ export class EmailJobHandler extends AbstractJobHandler {
     }
 
     Logger.handlerInfo(
-      `handler | execute success | handler=${this.identify()} | category=${this.category()} | emailId=${data.from} | subject=${data.subject}`,
+      `Email handler completed successfully | sender=${data.from} | subject=${data.subject}`,
+      undefined,
+      this.identify(),
     );
   }
 }

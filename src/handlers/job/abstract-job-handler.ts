@@ -1,4 +1,5 @@
 import { JobHandler } from "../../interfaces/job-interfaces";
+import { Logger } from "../../services/log-service";
 import { jobData } from "../../types/job-types";
 
 export abstract class AbstractJobHandler implements JobHandler {
@@ -18,6 +19,11 @@ export abstract class AbstractJobHandler implements JobHandler {
       await this.execute(data);
       await this.afterExecute(data);
     } catch (error) {
+      Logger.handlerError(
+        `Handler execution failed during process step | error=${(error as Error).message}`,
+        undefined,
+        this.identify(),
+      );
       await this.onFailure(data, error);
       throw error;
     }

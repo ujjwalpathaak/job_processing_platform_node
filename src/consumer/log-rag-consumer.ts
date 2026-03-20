@@ -11,7 +11,7 @@ export class LogRagConsumer {
     const rabbit = await Rabbit.getInstance();
     const channel = rabbit.getChannel();
 
-    channel.prefetch(20);
+    channel.prefetch(1);
 
     await channel.consume(Queue.LOG_RAG, async (msg) => {
       if (!msg) return;
@@ -30,7 +30,7 @@ export class LogRagConsumer {
         channel.ack(msg);
       } catch (error) {
         Logger.error(
-          `rag | consumer message failed | consumer=${this.consumerName} | queue=${Queue.LOG_RAG} | error=${error}`,
+          `RAG ingestion consumer failed to process message | consumer=${this.consumerName} | queue=${Queue.LOG_RAG} | error=${error}`,
         );
         channel.nack(msg, false, true);
       }

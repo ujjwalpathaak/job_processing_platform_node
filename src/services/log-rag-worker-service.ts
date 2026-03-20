@@ -12,37 +12,27 @@ import {
 import { embedText } from "./embedding-service";
 import { insertJobChunk } from "../repositories/job-chunk-repository";
 import { Logger } from "./log-service";
+import * as Log from "../enums/log-enums";
+import { getJobHandlerCategoryFromType, isValidJobHandlerType } from "../managers/job-manager";
+import { JobHandlerTypes } from "../enums/job-enums";
 
-const summarizeMessage = (message: string): string => {
-  if (!message) {
-    return "No message details available";
+const resolveCategoryFromHandler = (handler: string): string => {
+  if (!isValidJobHandlerType(handler)) {
+    return "UNKNOWN";
   }
 
-  const pipeParts = message
-    .split("|")
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (pipeParts.length >= 2) {
-    return pipeParts.slice(0, 3).join(" | ");
-  }
-
-  const eventMatch = message.match(/event=([^\s]+)/);
-  if (eventMatch?.[1]) {
-    return eventMatch[1].replace(/\./g, " ").replace(/_/g, " ").trim();
-  }
-
-  return message.trim();
+  return getJobHandlerCategoryFromType(handler as JobHandlerTypes);
 };
 
-const buildChunkText = (handler: string, logs: LogIngestionPayload[]): string => {
-  const level = logs.some((log) => log.log_level === "ERROR")
-    ? "ERROR"
-    : logs[logs.length - 1].log_level;
+const buildChunkText = (logs: LogIngestionPayload[]): string => {
   const sequence = logs
-    .map((log) => `- [${log.log_source}/${log.log_stream}] ${summarizeMessage(log.message)}`)
+    .map(
+      (log) =>
+        `[${log.log_source}${log.log_level === Log.Level.ERROR ? "/ERROR" : ""}] ${log.message}`,
+    )
     .join("\n");
 
-  return `Handler: ${handler}\nLevel: ${level}\n\nSequence:\n${sequence}`;
+  return `job_id: ${logs[0].job_id}\nhandler: ${logs[0].handler}\ntimestamp: ${logs[0].timestamp}\n${sequence}`;
 };
 
 const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise<void> => {
@@ -50,26 +40,13 @@ const persistChunk = async (jobId: string, logs: LogIngestionPayload[]): Promise
     return;
   }
 
-  const latestLog = logs[logs.length - 1];
-  const chunkText = buildChunkText(latestLog.handler, logs);
+  const log = logs[0];
+  const chunkText = buildChunkText(logs);
   const embedding = await embedText(chunkText);
-  const effectiveLevel = logs.some((log) => log.log_level === "ERROR")
-    ? "ERROR"
-    : latestLog.log_level;
-  const sourceSet = new Set(logs.map((log) => log.log_source));
-  const streamSet = new Set(logs.map((log) => log.log_stream));
-  const effectiveSource = sourceSet.size === 1 ? logs[0].log_source : "MIXED";
-  const effectiveStream = streamSet.size === 1 ? logs[0].log_stream : "MIXED";
+  const containsError = logs.some((log) => log.log_level === Log.Level.ERROR) ? true : false;
+  const category = resolveCategoryFromHandler(log.handler);
 
-  await insertJobChunk(
-    jobId,
-    latestLog.handler,
-    effectiveLevel,
-    effectiveSource,
-    effectiveStream,
-    chunkText,
-    embedding,
-  );
+  await insertJobChunk(jobId, log.handler, category, containsError, chunkText, embedding);
 };
 
 export const processLogForRag = async (log: LogIngestionPayload): Promise<void> => {
@@ -87,7 +64,8 @@ export const processLogForRag = async (log: LogIngestionPayload): Promise<void> 
     }
 
     await persistChunk(log.job_id, logs);
-    await trimOldestLog(log.job_id);
+    const trimCount = Math.max(config.redis.windowSize - 1, 1);
+    await trimOldestLog(log.job_id, trimCount);
   } finally {
     await releaseJobLock(log.job_id, lockToken);
   }
@@ -112,7 +90,6 @@ export const finalizeJobLogsForRag = async (
       ...log,
       handler: log.handler || fallbackHandler,
       log_source: log.log_source || "SYSTEM",
-      log_stream: log.log_stream || "APPLICATION",
     }));
 
     await persistChunk(jobId, normalizedLogs);
@@ -121,5 +98,5 @@ export const finalizeJobLogsForRag = async (
     await releaseJobLock(jobId, lockToken);
   }
 
-  Logger.info(`rag | job finalized | jobId=${jobId} | handler=${fallbackHandler}`);
+  Logger.info("RAG finalization completed for buffered job logs", jobId, fallbackHandler);
 };

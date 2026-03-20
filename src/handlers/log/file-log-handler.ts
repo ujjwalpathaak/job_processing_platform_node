@@ -3,6 +3,8 @@ import { LogHandler } from "../../interfaces/log-handlers";
 import { LogMessage } from "../../dto/log-dtos";
 import fs from "fs";
 import path from "path";
+import { getJobHandlerCategoryFromType, isValidJobHandlerType } from "../../managers/job-manager";
+import { JobHandlerTypes } from "../../enums/job-enums";
 
 export default class FileLogHandler implements LogHandler {
   private static readonly JOB_LOG_FILE = path.join("logs", "job.log");
@@ -47,7 +49,7 @@ export default class FileLogHandler implements LogHandler {
       return [{ filePath: FileLogHandler.HANDLER_LOG_FILE, stream: "HANDLER" }];
     }
 
-    if (this.isJobLog(message.message)) {
+    if (message.job_id || this.isJobLog(message.message)) {
       return [{ filePath: FileLogHandler.JOB_LOG_FILE, stream: "JOB" }];
     }
 
@@ -59,11 +61,26 @@ export default class FileLogHandler implements LogHandler {
     return (
       normalized.startsWith("job |") ||
       normalized.startsWith("rag |") ||
-      normalized.includes("| jobid=")
+      normalized.includes("| job_id=")
     );
   }
 
   private format(message: LogMessage): string {
-    return `${message.timestamp} | ${message.level} | ${message.message}\n`;
+    const messageParts = [message.message];
+
+    if (message.job_id) {
+      messageParts.push(`job_id=${message.job_id}`);
+    }
+
+    if (message.handler) {
+      messageParts.push(`handler=${message.handler}`);
+
+      if (isValidJobHandlerType(message.handler)) {
+        const category = getJobHandlerCategoryFromType(message.handler as JobHandlerTypes);
+        messageParts.push(`category=${category}`);
+      }
+    }
+
+    return `${message.timestamp} | ${message.level} | ${messageParts.join(" | ")}\n`;
   }
 }

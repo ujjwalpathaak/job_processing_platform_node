@@ -19,36 +19,36 @@ export const createAndPublishJob = async (
   jobHandlerType: JobHandlerTypes,
   jobData: jobData,
 ): Promise<string> => {
-  Logger.info(`create requested | handler=${jobHandlerType}`);
+  Logger.info("Job creation requested for handler", undefined, jobHandlerType);
   const jobCategory: JobCategories = getJobHandlerCategoryFromType(jobHandlerType);
   if (!jobCategory) {
-    Logger.error(`create invalid handler | handler=${jobHandlerType}`);
+    Logger.error("Job creation rejected: handler type is invalid", undefined, jobHandlerType);
     throw new Error(`No category found for job handler type: ${jobHandlerType}`);
   }
 
   const job: Job = new Job(jobHandlerType, jobCategory, jobData);
   const createdJob: Job = await create(job);
   if (!createdJob.id) {
-    Logger.error(`create persist failed | handler=${jobHandlerType} | category=${jobCategory}`);
+    Logger.error("Job creation failed: database did not return job id", undefined, jobHandlerType);
     throw new Error("Failed to create job in the database");
   }
   Logger.info(
-    `create persisted | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
+    "New job created; publishing message to queue",
+    job.id,
+    jobHandlerType,
+    undefined,
+    true,
   );
 
   const publishSucceeded = await pushJobToQueue(job);
   if (!publishSucceeded) {
-    Logger.error(
-      `create publish failed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
-    );
+    Logger.error("Job publish failed after persistence", job.id, jobHandlerType, undefined, true);
     await updateHistory(job.id, JobStatuses.ERROR, "Failed to publish job to queue");
     throw new Error("Failed to publish job to queue");
   }
 
   await updateHistory(job.id, JobStatuses.PUBLISHED);
-  Logger.info(
-    `create completed | jobId=${job.id} | handler=${jobHandlerType} | category=${jobCategory}`,
-  );
+  Logger.info("Job creation completed successfully", job.id, jobHandlerType, undefined, true);
 
   return job.id;
 };

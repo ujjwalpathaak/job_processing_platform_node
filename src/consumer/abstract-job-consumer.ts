@@ -1,6 +1,5 @@
 import { JobMessage } from "../dto/job-dtos";
 import { JobCategories, JobStatuses } from "../enums/job-enums";
-import { resolveRetryQueue } from "../enums/queue-enums";
 import { JobHandlerFactory } from "../factory/job-handler-factory";
 import { updateHistory } from "../repositories/job-repository";
 import { pushMessageToRetryQueue } from "../services/job-producer";
@@ -19,27 +18,28 @@ export abstract class AbstractJobConsumer {
       );
     }
 
-    Logger.info(
-      `processing started | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | category=${message.category}`,
-      message.id,
-      message.handler,
-    );
     try {
       await updateHistory(message.id, JobStatuses.PROCESSING);
       try {
+        Logger.info(
+          "Job processing started | attempt=" + attempt,
+          message.id,
+          message.handler,
+          undefined,
+          true,
+        );
         await handler.process(message.data);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         Logger.handlerError(
-          `processing failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
+          `Handler execution failed; evaluating retry policy | attempt=${attempt} | error=${errorMessage}`,
           message.id,
           message.handler,
         );
 
-        const canRetry = attempt < handler.retries();
+        const canRetry = attempt <= handler.retries();
         if (canRetry) {
           const backoffValue = handler.backoff()[attempt] ?? handler.backoff().at(-1);
-          const retryQueue = resolveRetryQueue(backoffValue);
           await updateHistory(message.id, JobStatuses.RETRY, errorMessage);
           const requeued = await pushMessageToRetryQueue(
             {
@@ -53,15 +53,21 @@ export abstract class AbstractJobConsumer {
             await updateHistory(message.id, JobStatuses.ERROR, "Failed to push job to retry queue");
             await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
             Logger.error(
-              `retry enqueue failed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${errorMessage}`,
+              `Retry enqueue failed; marking job as dead | attempt=${attempt + 1} | error=${errorMessage}`,
+              message.id,
+              message.handler,
+              undefined,
+              true,
             );
             return;
           }
 
           Logger.info(
-            `retry queued | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | currentAttempt=${attempt + 1} | nextAttempt=${attempt + 2} | backoff=${backoffValue ?? "default"} | queue=${retryQueue}`,
+            `Retry scheduled for job processing | currentAttempt=${attempt + 1} | backoff=${backoffValue ?? "default"}`,
             message.id,
             message.handler,
+            undefined,
+            true,
           );
           return;
         }
@@ -69,25 +75,28 @@ export abstract class AbstractJobConsumer {
         await updateHistory(message.id, JobStatuses.ERROR, errorMessage);
         await updateHistory(message.id, JobStatuses.DEAD, errorMessage);
         Logger.error(
-          `retry exhausted | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | maxRetries=${handler.retries()} | error=${errorMessage}`,
+          `Retries exhausted; marking job as dead | attempt=${attempt + 1} | maxRetries=${handler.retries()} | error=${errorMessage}`,
           message.id,
           message.handler,
+          true,
           true,
         );
         return;
       }
       await updateHistory(message.id, JobStatuses.PROCESSED);
       Logger.info(
-        `processing completed | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1}`,
+        `Job processing completed successfully | attempt=${attempt}`,
         message.id,
         message.handler,
+        true,
         true,
       );
     } catch (error) {
       Logger.error(
-        `processing unhandled error | consumer=${this.consumerName} | jobId=${message.id} | handler=${message.handler} | attempt=${attempt + 1} | error=${error}`,
+        `Consumer pipeline failed with unhandled error | attempt=${attempt} | error=${error}`,
         message.id,
         message.handler,
+        true,
         true,
       );
     }

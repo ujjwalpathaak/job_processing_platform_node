@@ -12,34 +12,23 @@ export class Logger {
     fromHandler: boolean,
     jobId?: string,
     handler?: string,
-    emitCompletion?: boolean,
+    completion?: boolean,
   ): Promise<void> {
     if (!jobId || !handler) {
       return;
     }
 
-    const ragLevel = level === Log.Level.ERROR ? "ERROR" : "INFO";
-    const logSource = fromHandler ? "HANDLER" : "SYSTEM";
-    const logStream = fromHandler
-      ? ragLevel === "ERROR"
-        ? "HANDLER_ERROR"
-        : "HANDLER_APPLICATION"
-      : ragLevel === "ERROR"
-        ? "ERROR"
-        : "APPLICATION";
-
     await publishLogForRag({
       job_id: jobId,
       handler,
-      log_level: ragLevel,
-      log_source: logSource,
-      log_stream: logStream,
+      log_level: level,
+      log_source: fromHandler ? "HANDLER" : "SYSTEM",
       message,
       timestamp: Date.now(),
     });
 
-    if (emitCompletion) {
-      await publishJobCompletedForRag(jobId, handler);
+    if (completion) {
+      await publishJobCompletedForRag({ job_id: jobId, handler });
     }
   }
 
@@ -61,14 +50,15 @@ export class Logger {
     fromHandler: boolean = false,
     jobId?: string,
     handler?: string,
-    emitCompletion?: boolean,
+    completion?: boolean,
+    rag?: boolean,
   ): void {
-    void this.forwardToRag(message, level, fromHandler, jobId, handler, emitCompletion);
+    rag && void this.forwardToRag(message, level, fromHandler, jobId, handler, completion);
 
     const list = handlers.get(level);
     if (!list || list.length === 0) return;
 
-    const logMessage = new LogMessage(message, level);
+    const logMessage = new LogMessage(message, level, jobId, handler);
     for (const handler of list) {
       handler.handle(logMessage, fromHandler);
     }
@@ -78,25 +68,37 @@ export class Logger {
     message: string,
     jobId?: string,
     handler?: string,
-    emitCompletion?: boolean,
+    completion?: boolean,
   ): void {
-    this.handle(message, Log.Level.INFO, true, jobId, handler, emitCompletion);
+    this.handle(message, Log.Level.INFO, true, jobId, handler, completion, true);
   }
 
   static handlerError(
     message: string,
     jobId?: string,
     handler?: string,
-    emitCompletion?: boolean,
+    completion?: boolean,
   ): void {
-    this.handle(message, Log.Level.ERROR, true, jobId, handler, emitCompletion);
+    this.handle(message, Log.Level.ERROR, true, jobId, handler, completion, true);
   }
 
-  static info(message: string, jobId?: string, handler?: string, emitCompletion?: boolean): void {
-    this.handle(message, Log.Level.INFO, false, jobId, handler, emitCompletion);
+  static info(
+    message: string,
+    jobId?: string,
+    handler?: string,
+    completion?: boolean,
+    rag?: boolean,
+  ): void {
+    this.handle(message, Log.Level.INFO, false, jobId, handler, completion, rag);
   }
 
-  static error(message: string, jobId?: string, handler?: string, emitCompletion?: boolean): void {
-    this.handle(message, Log.Level.ERROR, false, jobId, handler, emitCompletion);
+  static error(
+    message: string,
+    jobId?: string,
+    handler?: string,
+    completion?: boolean,
+    rag?: boolean,
+  ): void {
+    this.handle(message, Log.Level.ERROR, false, jobId, handler, completion, rag);
   }
 }
