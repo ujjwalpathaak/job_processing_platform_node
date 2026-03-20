@@ -4,43 +4,9 @@ import { JsonOutputParser, StringOutputParser } from "@langchain/core/output_par
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableLambda, RunnableSequence } from "@langchain/core/runnables";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { getPgVectorStore } from "./langchain-pgvector-service";
 import { JobHandlerTypes } from "../enums/job-enums";
-
-const toRetrieverFilter = (filters: RAGFilters): Record<string, string> | undefined => {
-  const normalized: Record<string, string> = {};
-
-  if (filters.handler) {
-    normalized.handler = filters.handler;
-  }
-
-  if (filters.job_id) {
-    normalized.job_id = filters.job_id;
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : undefined;
-};
-
-const toRetrievedChunk = (doc: {
-  id?: string;
-  pageContent: string;
-  metadata?: Record<string, unknown>;
-}): RetrievedChunk => {
-  const metadata = doc.metadata ?? {};
-  const parsedId = Number.parseInt(String(doc.id ?? metadata.id ?? "0"), 10);
-
-  return {
-    id: Number.isNaN(parsedId) ? 0 : parsedId,
-    job_id: String(metadata.job_id ?? ""),
-    handler: String(metadata.handler ?? "unknown"),
-    log_level: String(metadata.log_level ?? "INFO"),
-    log_source: String(metadata.log_source ?? "SYSTEM"),
-    log_stream: String(metadata.log_stream ?? "APPLICATION"),
-    content: doc.pageContent,
-    created_at: String(metadata.created_at ?? new Date().toISOString()),
-    similarity: 0,
-  };
-};
+import { embedText } from "./embedding-service";
+import { searchJobChunksByColumnsWithEmbedding } from "../repositories/job-chunk-repository";
 
 const getChatModel = (temperature: number): ChatGoogleGenerativeAI => {
   if (!config.gemini.apiKey) {
@@ -65,17 +31,17 @@ const extractFiltersWithLLM = async (queryText: string): Promise<RAGFilters> => 
       "system",
       `Extract filters for log retrieval.
 
-Output format:
-{{
-  "job_id": "<UUID, optional>",
-  "handler": "<UPPERCASE value from: ${Object.keys(JobHandlerTypes).join(", ")}, optional>"
-}}
+      Output format:
+      {{
+        "job_id": "<UUID, optional>",
+        "handler": "<LOWERCASE value from: ${Object.keys(JobHandlerTypes).join(", ")}, optional>"
+      }}
 
-Rules:
-- Return ONLY valid JSON.
-- Do NOT include extra keys.
-- Do NOT include null values; omit missing fields.
-- Do NOT include any explanation or text outside the JSON.`,
+      Rules:
+      - Return ONLY valid JSON.
+      - Do NOT include extra keys.
+      - Do NOT include null values; omit missing fields.
+      - Do NOT include any explanation or text outside the JSON.`,
     ],
     ["human", "{queryText}"],
   ]);
@@ -92,7 +58,7 @@ Rules:
       obj.job_id = parsed.job_id;
     }
     if (parsed.handler) {
-      obj.handler = parsed.handler.toUpperCase();
+      obj.handler = parsed.handler.toLowerCase();
     }
     return obj;
   } catch (_error) {
@@ -156,20 +122,8 @@ const retrieveChunksWithRetriever = async (
   filters: RAGFilters,
   topK: number,
 ): Promise<RetrievedChunk[]> => {
-  const vectorStore = await getPgVectorStore();
-  const retriever = vectorStore.asRetriever({
-    k: topK,
-    filter: toRetrieverFilter(filters),
-  });
-
-  const docs = await retriever.invoke(queryText);
-  return docs.map((doc) =>
-    toRetrievedChunk({
-      id: doc.id,
-      pageContent: doc.pageContent,
-      metadata: (doc.metadata ?? {}) as Record<string, unknown>,
-    }),
-  );
+  const embedding = await embedText(queryText);
+  return searchJobChunksByColumnsWithEmbedding(embedding, filters, topK);
 };
 
 export const runRagQuery = async (

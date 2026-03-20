@@ -45,9 +45,6 @@ export type RetrievedChunk = {
   id: number;
   job_id: string;
   handler: string;
-  log_level: string;
-  log_source: string;
-  log_stream: string;
   content: string;
   created_at: string;
   similarity: number;

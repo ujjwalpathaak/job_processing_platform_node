@@ -26,11 +26,8 @@ export const initializeDatabase = async () => {
     await query(`
       CREATE TABLE IF NOT EXISTS job_chunks (
         id BIGSERIAL PRIMARY KEY,
-        job_id TEXT NOT NULL,
-        handler TEXT NOT NULL,
-        log_level TEXT NOT NULL,
-        log_source TEXT NOT NULL DEFAULT 'SYSTEM',
-        log_stream TEXT NOT NULL DEFAULT 'APPLICATION',
+        job_id TEXT,
+        handler TEXT,
         content TEXT NOT NULL,
         embedding VECTOR(782) NOT NULL,
         metadata JSONB,
@@ -44,14 +41,6 @@ export const initializeDatabase = async () => {
 
     await query(`
       CREATE INDEX IF NOT EXISTS idx_created_at ON job_chunks(created_at);
-    `);
-
-    await query(`
-      CREATE INDEX IF NOT EXISTS idx_log_source ON job_chunks(log_source);
-    `);
-
-    await query(`
-      CREATE INDEX IF NOT EXISTS idx_log_stream ON job_chunks(log_stream);
     `);
 
     await query(`
