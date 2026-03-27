@@ -4,6 +4,10 @@ import { Logger } from "../services/log-service";
 
 const pool = new Pool({
   connectionString: config.database.url,
+  max: config.database.pool.max,
+  min: config.database.pool.min,
+  idleTimeoutMillis: config.database.pool.idleTimeoutMs,
+  connectionTimeoutMillis: config.database.pool.connectionTimeoutMs,
 });
 
 pool.on("error", (err: Error) => {

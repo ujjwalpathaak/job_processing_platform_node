@@ -1,9 +1,6 @@
-// seed-jobs.js
-import fetch from "node-fetch";
-
-const BASE_URL = "http://localhost:8080/api/new";
-const TOTAL_REQUESTS = 200;
-const INTERVAL_MS = 300;
+const BASE_URL = process.env.LOAD_BASE_URL || "http://localhost:3000/api/new";
+const TOTAL_REQUESTS = Number.parseInt(process.env.LOAD_TOTAL_REQUESTS || "1000", 10);
+const CONCURRENCY = Number.parseInt(process.env.LOAD_CONCURRENCY || "40", 10);
 
 const JOB_DISTRIBUTION = {
     email: 0.2,
@@ -68,36 +65,79 @@ const generators = {
     }),
 };
 
-async function main() {
-    console.log(`Seeding ${TOTAL_REQUESTS} jobs...\n`);
+async function sendOne(index, stats) {
+    const jobType = pickJobType();
+    const payload = generators[jobType](index);
+    const startedAt = Date.now();
 
-    const stats = {};
+    try {
+        const res = await fetch(`${BASE_URL}/${jobType}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
 
-    for (let i = 0; i < TOTAL_REQUESTS; i++) {
-        const jobType = pickJobType();
-        const payload = generators[jobType](i);
-
-        try {
-            const res = await fetch(`${BASE_URL}/${jobType}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            stats[jobType] = (stats[jobType] || 0) + 1;
-
-            console.log(
-                `#${i + 1} | ${jobType} | Status: ${res.status}`
-            );
-        } catch (err) {
-            console.error(`#${i + 1} ERROR:`, err.message);
+        const latency = Date.now() - startedAt;
+        stats.sent += 1;
+        stats.byType[jobType] = (stats.byType[jobType] || 0) + 1;
+        stats.byStatus[res.status] = (stats.byStatus[res.status] || 0) + 1;
+        stats.totalLatency += latency;
+        if (latency > stats.maxLatency) {
+            stats.maxLatency = latency;
         }
 
-        await new Promise((r) => setTimeout(r, INTERVAL_MS));
+        return;
+    } catch (error) {
+        stats.errors += 1;
+        console.error(`#${index + 1} ERROR:`, error && error.message ? error.message : error);
     }
-
-    console.log("\nSeeding completed.\n");
-    console.log("Job distribution:", stats);
 }
 
-main();
+async function worker(startIndex, step, stats) {
+    for (let i = startIndex; i < TOTAL_REQUESTS; i += step) {
+        await sendOne(i, stats);
+    }
+}
+
+async function main() {
+    if (typeof fetch !== "function") {
+        throw new Error("Global fetch is unavailable. Use Node.js 18+ for load script execution.");
+    }
+
+    const stats = {
+        sent: 0,
+        errors: 0,
+        byType: {},
+        byStatus: {},
+        totalLatency: 0,
+        maxLatency: 0,
+    };
+
+    const startedAt = Date.now();
+    console.log(
+        `Starting load generation: total=${TOTAL_REQUESTS}, concurrency=${CONCURRENCY}, baseUrl=${BASE_URL}`,
+    );
+
+    await Promise.all(
+        Array.from({ length: CONCURRENCY }, (_, index) => worker(index, CONCURRENCY, stats)),
+    );
+
+    const elapsedMs = Date.now() - startedAt;
+    const rps = elapsedMs > 0 ? ((stats.sent / elapsedMs) * 1000).toFixed(2) : "0.00";
+    const avgLatency = stats.sent > 0 ? Math.round(stats.totalLatency / stats.sent) : 0;
+
+    console.log("\nLoad run completed\n");
+    console.log("Total attempted:", TOTAL_REQUESTS);
+    console.log("Total succeeded:", stats.sent);
+    console.log("Total failed:", stats.errors);
+    console.log("RPS:", rps);
+    console.log("Average latency (ms):", avgLatency);
+    console.log("Max latency (ms):", stats.maxLatency);
+    console.log("HTTP status breakdown:", stats.byStatus);
+    console.log("Job distribution:", stats.byType);
+}
+
+main().catch((error) => {
+    console.error("Load generation failed:", error && error.message ? error.message : error);
+    process.exit(1);
+});

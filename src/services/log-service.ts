@@ -2,6 +2,7 @@ import { LogMessage } from "../dto/log-dtos";
 import * as Log from "../enums/log-enums";
 import { LogHandler } from "../interfaces/log-handlers";
 import { publishJobCompletedForRag, publishLogForRag } from "./log-rag-producer";
+import { config } from "../config/config";
 
 const handlers: Map<Log.Level, LogHandler[]> = new Map();
 
@@ -53,7 +54,9 @@ export class Logger {
     completion?: boolean,
     rag?: boolean,
   ): void {
-    rag && void this.forwardToRag(message, level, fromHandler, jobId, handler, completion);
+    if (rag && config.rag.enabled) {
+      void this.forwardToRag(message, level, fromHandler, jobId, handler, completion);
+    }
 
     const list = handlers.get(level);
     if (!list || list.length === 0) return;

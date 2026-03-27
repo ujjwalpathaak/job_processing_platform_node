@@ -3,22 +3,42 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const config = {
-  port: process.env.PORT || 3000,
+  port: Number.parseInt(process.env.PORT || "3000", 10),
   nodeEnv: process.env.NODE_ENV || "development",
   database: {
     url: process.env.DATABASE_URL,
+    pool: {
+      max: Number.parseInt(process.env.DB_POOL_MAX || "50", 10),
+      min: Number.parseInt(process.env.DB_POOL_MIN || "5", 10),
+      idleTimeoutMs: Number.parseInt(process.env.DB_POOL_IDLE_TIMEOUT_MS || "30000", 10),
+      connectionTimeoutMs: Number.parseInt(process.env.DB_POOL_CONNECTION_TIMEOUT_MS || "5000", 10),
+    },
+  },
+  rabbit: {
+    url: process.env.AMQP_URL || "amqp://localhost",
+    publishDrainTimeoutMs: Number.parseInt(process.env.AMQP_PUBLISH_DRAIN_TIMEOUT_MS || "2000", 10),
+    prefetch: {
+      standard: Number.parseInt(process.env.AMQP_PREFETCH_STANDARD || "32", 10),
+      critical: Number.parseInt(process.env.AMQP_PREFETCH_CRITICAL || "32", 10),
+      external: Number.parseInt(process.env.AMQP_PREFETCH_EXTERNAL || "24", 10),
+      retry: Number.parseInt(process.env.AMQP_PREFETCH_RETRY || "64", 10),
+      logRag: Number.parseInt(process.env.AMQP_PREFETCH_LOG_RAG || "8", 10),
+    },
   },
   redis: {
     host: process.env.REDIS_HOST || "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT || "6379", 10),
+    port: Number.parseInt(process.env.REDIS_PORT || "6379", 10),
     url: process.env.REDIS_URL,
-    windowSize: parseInt(process.env.RAG_WINDOW_SIZE || "5", 10),
-    lockTtlMs: parseInt(process.env.RAG_LOCK_TTL_MS || "5000", 10),
+    windowSize: Number.parseInt(process.env.RAG_WINDOW_SIZE || "5", 10),
+    lockTtlMs: Number.parseInt(process.env.RAG_LOCK_TTL_MS || "5000", 10),
   },
   rag: {
-    embeddingDimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || "782", 10),
-    retentionDays: parseInt(process.env.RAG_RETENTION_DAYS || "14", 10),
-    topK: parseInt(process.env.RAG_TOP_K || "10", 10),
+    enabled: process.env.RAG_INGESTION_ENABLED
+      ? process.env.RAG_INGESTION_ENABLED.toLowerCase() === "true"
+      : true,
+    embeddingDimensions: Number.parseInt(process.env.EMBEDDING_DIMENSIONS || "782", 10),
+    retentionDays: Number.parseInt(process.env.RAG_RETENTION_DAYS || "14", 10),
+    topK: Number.parseInt(process.env.RAG_TOP_K || "10", 10),
   },
   gemini: {
     apiKey: process.env.GOOGLE_API_KEY,

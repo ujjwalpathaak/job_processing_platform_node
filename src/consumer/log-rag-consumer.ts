@@ -3,15 +3,14 @@ import { LogRagEventPayload } from "../dto/rag-dtos";
 import { Queue } from "../enums/queue-enums";
 import { Logger } from "../services/log-service";
 import { finalizeJobLogsForRag, processLogForRag } from "../services/log-rag-worker-service";
+import { config } from "../config/config";
 
 export class LogRagConsumer {
   private consumerName = "LogRagConsumer";
 
   public async start(): Promise<void> {
     const rabbit = await Rabbit.getInstance();
-    const channel = rabbit.getChannel();
-
-    channel.prefetch(1);
+    const channel = await rabbit.createConsumerChannel(config.rabbit.prefetch.logRag);
 
     await channel.consume(Queue.LOG_RAG, async (msg) => {
       if (!msg) return;

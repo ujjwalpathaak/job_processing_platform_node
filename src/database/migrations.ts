@@ -24,6 +24,26 @@ export const initializeDatabase = async () => {
     `);
 
     await query(`
+      CREATE INDEX IF NOT EXISTS jobs_updated_at_idx
+      ON jobs(updated_at DESC);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS jobs_status_updated_at_idx
+      ON jobs(status, updated_at DESC);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS jobs_handler_updated_at_idx
+      ON jobs(job_handler, updated_at DESC);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS jobs_category_updated_at_idx
+      ON jobs(job_category, updated_at DESC);
+    `);
+
+    await query(`
       CREATE TABLE IF NOT EXISTS job_chunks (
         id BIGSERIAL PRIMARY KEY,
         job_id TEXT,
@@ -41,6 +61,10 @@ export const initializeDatabase = async () => {
 
     await query(`
       CREATE INDEX IF NOT EXISTS idx_created_at ON job_chunks(created_at);
+    `);
+
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_job_chunks_job_id ON job_chunks(job_id);
     `);
 
     await query(`

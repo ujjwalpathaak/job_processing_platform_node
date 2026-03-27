@@ -22,7 +22,7 @@ export const pushJobToQueue = async (job: Job): Promise<boolean> => {
     payload.id,
     payload.handler,
   );
-  const published = rabbit.publish(queue, JSON.stringify(payload));
+  const published = await rabbit.publish(queue, JSON.stringify(payload));
   if (!published) {
     Logger.error(
       `Primary queue publish failed | queue=${queue}`,
@@ -51,7 +51,7 @@ export const pushMessageToRetryQueue = async (
     undefined,
     true,
   );
-  const published = rabbit.publish(retryQueue, JSON.stringify(message));
+  const published = await rabbit.publish(retryQueue, JSON.stringify(message));
   if (!published) {
     Logger.error(`Retry queue publish failed`, message.id, message.handler, undefined, true);
     return false;

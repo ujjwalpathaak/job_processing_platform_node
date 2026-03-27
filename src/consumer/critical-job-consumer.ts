@@ -4,6 +4,7 @@ import { JobMessage } from "../dto/job-dtos";
 import * as Job from "../enums/job-enums";
 import { AbstractJobConsumer } from "./abstract-job-consumer";
 import { Logger } from "../services/log-service";
+import { config } from "../config/config";
 
 export class CriticalJobConsumer extends AbstractJobConsumer {
   protected consumerName = "CriticalJobConsumer";
@@ -15,9 +16,7 @@ export class CriticalJobConsumer extends AbstractJobConsumer {
 
   public async start(): Promise<void> {
     const rabbit = await Rabbit.getInstance();
-    const channel = rabbit.getChannel();
-
-    channel.prefetch(10);
+    const channel = await rabbit.createConsumerChannel(config.rabbit.prefetch.critical);
 
     await channel.consume(Queue.CRITICAL, async (msg) => {
       if (!msg) return;

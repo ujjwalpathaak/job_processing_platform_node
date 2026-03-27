@@ -13,7 +13,7 @@ export const publishLogForRag = async (payload: LogIngestionPayload): Promise<bo
     payload,
   };
 
-  return rabbit.publish(Queue.LOG_RAG, JSON.stringify(message));
+  return await rabbit.publish(Queue.LOG_RAG, JSON.stringify(message));
 };
 
 export const publishJobCompletedForRag = async (
@@ -25,5 +25,5 @@ export const publishJobCompletedForRag = async (
     payload,
   };
 
-  return rabbit.publish(Queue.LOG_RAG, JSON.stringify(message));
+  return await rabbit.publish(Queue.LOG_RAG, JSON.stringify(message));
 };

@@ -4,6 +4,7 @@ import { Queue } from "../enums/queue-enums";
 import { Rabbit } from "../config/rabbit";
 import { updateHistory } from "../repositories/job-repository";
 import { Logger } from "../services/log-service";
+import { config } from "../config/config";
 
 export class RetryRouterConsumer {
   protected routerName = "RetryRouterConsumer";
@@ -12,9 +13,7 @@ export class RetryRouterConsumer {
 
   public async start(): Promise<void> {
     const rabbit = await Rabbit.getInstance();
-    const channel = rabbit.getChannel();
-
-    channel.prefetch(10);
+    const channel = await rabbit.createConsumerChannel(config.rabbit.prefetch.retry);
 
     await channel.consume(Queue.RETRY_READY, async (msg) => {
       if (!msg) return;
@@ -31,7 +30,7 @@ export class RetryRouterConsumer {
           true,
         );
         const targetQueue = rabbit.getQueueByCategory(parsedContent.category);
-        const published = rabbit.publish(targetQueue, JSON.stringify(parsedContent));
+        const published = await rabbit.publish(targetQueue, JSON.stringify(parsedContent));
         if (!published) {
           await updateHistory(
             parsedContent.id,
