@@ -7,15 +7,54 @@ import { config } from "../config/config";
 
 export class LogRagConsumer {
   private consumerName = "LogRagConsumer";
+  private rateWindowStartedAt = Date.now();
+  private processedInCurrentWindow = 0;
+
+  private async sleep(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async waitForRateSlot(): Promise<void> {
+    if (config.rag.consumerMaxPerSecond <= 0) {
+      return;
+    }
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const now = Date.now();
+      if (now - this.rateWindowStartedAt >= 1000) {
+        this.rateWindowStartedAt = now;
+        this.processedInCurrentWindow = 0;
+      }
+
+      if (this.processedInCurrentWindow < config.rag.consumerMaxPerSecond) {
+        this.processedInCurrentWindow += 1;
+        return;
+      }
+
+      const waitMs = Math.max(5, 1000 - (now - this.rateWindowStartedAt));
+      await this.sleep(waitMs);
+    }
+  }
 
   public async start(): Promise<void> {
     const rabbit = await Rabbit.getInstance();
-    const channel = await rabbit.createConsumerChannel(config.rabbit.prefetch.logRag);
+    const effectivePrefetch = Math.max(
+      1,
+      Math.min(config.rabbit.prefetch.logRag, config.rag.consumerMaxInFlight),
+    );
+    const channel = await rabbit.createConsumerChannel(effectivePrefetch);
+
+    Logger.info(
+      `RAG consumer started | prefetch=${effectivePrefetch} | maxInFlight=${config.rag.consumerMaxInFlight} | maxPerSecond=${config.rag.consumerMaxPerSecond}`,
+    );
 
     await channel.consume(Queue.LOG_RAG, async (msg) => {
       if (!msg) return;
 
       try {
+        await this.waitForRateSlot();
+
         const content: LogRagEventPayload = JSON.parse(msg.content.toString());
 
         if (content.type === "LOG") {

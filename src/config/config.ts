@@ -39,6 +39,8 @@ export const config = {
     embeddingDimensions: Number.parseInt(process.env.EMBEDDING_DIMENSIONS || "782", 10),
     retentionDays: Number.parseInt(process.env.RAG_RETENTION_DAYS || "14", 10),
     topK: Number.parseInt(process.env.RAG_TOP_K || "10", 10),
+    consumerMaxInFlight: Number.parseInt(process.env.RAG_CONSUMER_MAX_IN_FLIGHT || "4", 10),
+    consumerMaxPerSecond: Number.parseInt(process.env.RAG_CONSUMER_MAX_PER_SECOND || "12", 10),
   },
   handlerFailureRate: {
     email: Number.parseFloat(process.env.HANDLER_FAILURE_RATE_EMAIL || "0.05"),
