@@ -1,4 +1,5 @@
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { config } from "../../config/config";
 import { Logger } from "../../services/log-service";
 import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
@@ -22,8 +23,10 @@ export class RefundJobHandler extends AbstractJobHandler {
   public process(data: jobData): Promise<void> {
     return super.process(data);
   }
-  protected execute(_data: jobData): void {
-    if (Math.random() < 0.3) {
+  protected async execute(_data: jobData): Promise<void> {
+    await this.waitRandomMs(config.handlerDelayMs.refundMin, config.handlerDelayMs.refundMax);
+
+    if (Math.random() < config.handlerFailureRate.refund) {
       throw new Error("Duplicate refund detected");
     }
 

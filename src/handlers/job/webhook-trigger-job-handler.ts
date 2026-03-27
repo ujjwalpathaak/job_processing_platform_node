@@ -1,4 +1,5 @@
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { config } from "../../config/config";
 import { Logger } from "../../services/log-service";
 import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
@@ -23,9 +24,9 @@ export class WebhookTriggerJobHandler extends AbstractJobHandler {
     return super.process(data);
   }
   protected async execute(_data: jobData): Promise<void> {
-    await this.simulateNetworkLatency();
+    await this.waitRandomMs(config.handlerDelayMs.webhookMin, config.handlerDelayMs.webhookMax);
 
-    if (Math.random() < 0.4) {
+    if (Math.random() < config.handlerFailureRate.webhook) {
       throw new Error("Webhook responded with HTTP 502");
     }
 
@@ -34,10 +35,5 @@ export class WebhookTriggerJobHandler extends AbstractJobHandler {
       undefined,
       this.identify(),
     );
-  }
-
-  private async simulateNetworkLatency(): Promise<void> {
-    const delayMs = Math.floor(Math.random() * 2000);
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 }

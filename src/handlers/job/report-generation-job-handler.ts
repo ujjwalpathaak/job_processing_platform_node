@@ -1,4 +1,5 @@
 import { JobHandlerTypes, JobCategories } from "../../enums/job-enums";
+import { config } from "../../config/config";
 import { Logger } from "../../services/log-service";
 import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
@@ -24,7 +25,7 @@ export class ReportGenerationJobHandler extends AbstractJobHandler {
   }
 
   protected async execute(data: jobData): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await this.waitRandomMs(config.handlerDelayMs.reportMin, config.handlerDelayMs.reportMax);
     Logger.handlerInfo(
       `Report-generation handler completed successfully | reportJobId=${data.id}`,
       undefined,

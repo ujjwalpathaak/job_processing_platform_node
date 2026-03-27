@@ -45,5 +45,21 @@ export abstract class AbstractJobHandler implements JobHandler {
     // no-op by default
   }
 
+  protected async waitMs(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  protected randomBetween(minMs: number, maxMs: number): number {
+    if (maxMs <= minMs) {
+      return minMs;
+    }
+
+    return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  }
+
+  protected async waitRandomMs(minMs: number, maxMs: number): Promise<void> {
+    await this.waitMs(this.randomBetween(minMs, maxMs));
+  }
+
   protected abstract execute(data: jobData): Promise<void> | void;
 }

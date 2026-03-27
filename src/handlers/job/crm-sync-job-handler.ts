@@ -1,4 +1,6 @@
 import * as Job from "../../enums/job-enums";
+import { config } from "../../config/config";
+import { Logger } from "../../services/log-service";
 import { jobData } from "../../types/job-types";
 import { AbstractJobHandler } from "./abstract-job-handler";
 
@@ -24,7 +26,16 @@ export class CrmSyncJobHandler extends AbstractJobHandler {
   }
 
   protected async execute(_data: jobData): Promise<void> {
-    // await new Promise((resolve) => setTimeout(resolve, 4000));
-    throw new Error("CRM API timeout");
+    await this.waitRandomMs(config.handlerDelayMs.crmSyncMin, config.handlerDelayMs.crmSyncMax);
+
+    if (Math.random() < config.handlerFailureRate.crmSync) {
+      throw new Error("CRM API timeout");
+    }
+
+    Logger.handlerInfo(
+      "CRM sync handler completed successfully | action=crm_sync_completed",
+      undefined,
+      this.identify(),
+    );
   }
 }
